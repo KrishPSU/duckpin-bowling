@@ -1,3 +1,5 @@
+const socket = io();
+
 // Mobile Menu Logic
 const menuToggle = document.querySelector('.mobile-menu-toggle');
 const navMenu = document.querySelector('nav ul');
