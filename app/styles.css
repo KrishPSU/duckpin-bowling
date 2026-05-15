@@ -47,7 +47,13 @@ header {
     align-items: center;
 }
 
-nav ul { list-style: none; display: flex; gap: 2rem; }
+nav ul { 
+    list-style: none; 
+    display: flex; 
+    gap: 2rem; 
+    align-items: center;
+    text-align: center;
+}
 nav a { 
     color: var(--bg-cream); 
     text-decoration: none; 
@@ -72,7 +78,7 @@ nav a:hover { color: #D4C5B0; }
     color: var(--bg-cream);
     text-align: center;
     padding: 80px 20px 100px; /* Slightly reduced top padding to accommodate logo */
-    background: linear-gradient(rgba(44, 30, 22, 0.8), rgba(44, 30, 22, 0.8)), url('hero-lanes.png') no-repeat center center/cover;
+    background: linear-gradient(rgba(44, 30, 22, 0.8), rgba(44, 30, 22, 0.8)), url('./images/hero-lanes.png') no-repeat center center/cover;
     border-bottom: 4px solid var(--accent-red);
 }
 
@@ -100,6 +106,11 @@ nav a:hover { color: #D4C5B0; }
     text-align: center;
 }
 .btn:hover { background-color: #9A281E; transform: translateY(-2px); }
+
+#top-bar-reserve {
+    padding: 10px 10px 5px 10px;
+}
+
 
 /* Container for content sections */
 .container { max-width: 1000px; margin: 0 auto; padding: 70px 20px; }
@@ -189,15 +200,23 @@ footer {
     
     .logo { font-size: 1.6rem; }
     
-    .mobile-menu-toggle { display: block; }
+    .mobile-menu-toggle { display: block; margin-left: auto; }
+
+    header {
+        justify-content: flex-start;
+    }
     
     nav ul { 
         display: none; 
         flex-direction: column; 
         position: absolute;
-        top: 100%; left: 0; width: 100%;
+        top: 100%; 
+        left: 0; 
+        width: 100%;
         background-color: var(--primary-dark);
-        padding: 1rem 0; text-align: center; gap: 0;
+        padding: 1rem 0; 
+        text-align: center; 
+        gap: 0;
         border-bottom: 3px solid var(--accent-red);
         box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3);
     }
