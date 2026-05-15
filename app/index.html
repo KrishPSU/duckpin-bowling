@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="No. Chelmsford Lanes - A classic neighborhood duckpin bowling alley in MA.">
+    <title>No. Chelmsford Lanes | Classic Duckpin Bowling</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="styles.css">
+    <script defer src="mobile-menu.js"></script>
+</head>
+<body>
+
+    <header>
+        <div class="logo">
+            <span>No. Chelmsford Lanes</span>
+        </div>
+        <button class="mobile-menu-toggle" aria-label="Toggle navigation menu">☰</button>
+        <nav>
+            <ul>
+                <li><a href="/reserve" id="top-bar-reserve" class="btn">Reserve a Lane</a></li>
+                <li><a href="#play">Play</a></li>
+                <li><a href="#history">Our Story</a></li>
+                <li><a href="#visit">Visit</a></li>
+                <li><a href="#pay">Quick Pay</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <img src="images/logo.png" alt="Lanes Logo" class="hero-logo">
+        <h1>Welcome to Chelmsford Lanes.</h1>
+        <p>Step through our doors whether you're a seasoned league bowler or bringing the kids for a weekend outing, there’s a lane waiting for you here.</p>
+        <a href="#visit" class="btn">Let's Roll</a>
+    </section>
+
+    <section id="play" class="container">
+        <h2>Bowling for Everyone</h2>
+        <p style="text-align: center; max-width: 700px; margin: 0 auto 2rem;">Duckpin uses smaller balls and lighter pins, making it the perfect game for all ages. No special gear required. Just bring your friends and have the time of your life!</p>
+        
+        <div class="grid-3">
+            <div class="feature-box">
+                <h3>Lane Rentals</h3>
+                <p>Grab your friends and family for an authentic bowling experience. Walk-ins are always welcome, but giving us a call to reserve a lane guarantees your spot on the wood.</p>
+            </div>
+            <div class="feature-box" style="border-top-color: var(--primary-dark);">
+                <h3>Parties & Events</h3>
+                <p>Celebrate with us! From children's birthday parties to corporate team-building, our nostalgic lanes offer the perfect, welcoming backdrop for your next unforgettable gathering.</p>
+            </div>
+            <div class="feature-box">
+                <h3>Pro Leagues</h3>
+                <p>Looking for friendly, local competition? Join one of our long-standing duckpin leagues. Bowlers of all skill levels meet weekly for great games and great company.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="history" style="background-color: var(--section-bg);">
+        <div class="container" style="text-align: center;">
+            <h2>A Neighborhood Staple Since 1943</h2>
+            <p style="max-width: 700px; margin: 0 auto; font-size: 1.1rem;">Originally Charlie Dinnigan Lanes, we’ve been North Chelmsford's home for authentic duckpin bowling for over 80 years. We still operate on the original mechanical pinsetters keeping it vintage to respect our roots. When you step through our doors, you aren't just a customer. You're part of our local family.</p>
+        </div>
+    </section>
+
+    <section id="gallery" class="container" style="padding-top: 60px; padding-bottom: 20px;">
+        <h2>Views from the Lanes</h2>
+        <div class="carousel-container">
+            <div class="carousel">
+                <img src="images/lane_suit.png" alt="No. Chelmsford Lanes" loading="lazy">
+                <img src="images/Pins.png" alt="Charlie Dinnigan Lanes 1943 Plaque" loading="lazy">
+                <img src="images/balls.png" alt="Vintage Duckpin Pinsetters" loading="lazy">
+                <img src="images/1943.png" alt="Classic 1991 Pepsi Pricing Board" loading="lazy">
+                <img src="images/Mike_Tom.png" alt="Welcome to No. Chelmsford Lanes" loading="lazy">
+            </div>
+        </div>
+    </section>
+
+    <section id="visit" class="container" style="padding-top: 40px;">
+        <h2>Come On Down</h2>
+        <div style="text-align: center; max-width: 600px; margin: 0 auto;">
+            <div style="background: #FFFFFF; padding: 2.5rem; border-radius: 4px; border: 1px solid var(--border-color); box-shadow: 6px 6px 0px rgba(62, 39, 35, 0.08); text-align: left;">
+                <p><strong>Location:</strong><br>22 Vinal Square, North Chelmsford, MA</p>
+                <p style="margin-top: 1.5rem;"><strong>Hours:</strong><br>
+                Monday - Friday: Call for Availability<br>
+                Saturday - Sunday: 9:00 AM - 6:00 PM</p>
+                <p style="margin-top: 1.5rem;"><strong>Give us a ring:</strong><br> <a href="tel:9782518108" style="color: var(--accent-red); font-weight: bold; text-decoration: none; font-size: 1.2rem;">(978) 251-8108</a></p>
+            </div>
+        </div>
+    </section>
+
+    <section id="pay" class="container" style="text-align: center; background-color: var(--section-bg); max-width: 100%;">
+        <div style="max-width: 1000px; margin: 0 auto;">
+            <h2>Quick Pay</h2>
+            <p style="font-size: 1.1rem;">Skip the line! Scan a code below to pay for your lane and shoes directly.</p>
+
+            <div class="payment-grid">
+                <div class="payment-card">
+                    <h3>Venmo</h3>
+                    <img src="images/venmo-qr.png" alt="Venmo QR Code" class="qr-code" loading="lazy">
+                    <p><strong>Scan to Pay</strong></p>
+                </div>
+
+                <!-- <div class="payment-card" style="border-top-color: var(--accent-red);">
+                    <h3>Cash App</h3>
+                    <img src="images/venmo-qr.png" alt="Cash App QR Code" class="qr-code" loading="lazy">
+                    <p><strong>Scan to Pay</strong></p>
+                </div> -->
+            </div>
+            <br>
+            <a href="/reserve" class="btn">Reserve a Lane</a>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 No. Chelmsford Lanes. Keeping tradition rolling.</p>
+    </footer>
+</body>
+</html>

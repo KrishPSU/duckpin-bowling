@@ -1,0 +1,207 @@
+/* CSS Reset & Vintage Variables */
+:root {
+    --primary-dark: #3E2723; /* Deep espresso wood brown */
+    --accent-red: #B73225; /* Classic bowling lane red */
+    --bg-cream: #F4EFE6; /* Warm aged paper/cream */
+    --section-bg: #E6DCC8; /* Vintage tan for contrasting sections */
+    --text-dark: #2C1E16; /* Warm dark brown-black for text */
+    --border-color: #D4C5B0;
+}
+        
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+    font-family: 'Libre Baskerville', serif; 
+    line-height: 1.6;
+    color: var(--text-dark);
+    background-color: var(--bg-cream);
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Vintage Display Font for Headings */
+h1, h2, h3, .logo span, .btn, nav a {
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 1.5px;
+    font-weight: normal;
+}
+
+/* Navigation */
+header {
+    background-color: var(--primary-dark);
+    color: var(--bg-cream);
+    padding: 1rem 5%;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 3px solid var(--accent-red);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.logo { 
+    font-size: 2rem;
+    display: flex;
+    align-items: center;
+}
+
+nav ul { list-style: none; display: flex; gap: 2rem; }
+nav a { 
+    color: var(--bg-cream); 
+    text-decoration: none; 
+    font-size: 1.3rem;
+    transition: color 0.3s; 
+}
+nav a:hover { color: #D4C5B0; }
+
+.mobile-menu-toggle {
+    display: none;
+    background: transparent;
+    border: none;
+    color: var(--bg-cream);
+    font-size: 2rem;
+    cursor: pointer;
+    padding: 0.25rem;
+}
+
+/* Hero Section */
+.hero {
+    background-color: var(--text-dark);
+    color: var(--bg-cream);
+    text-align: center;
+    padding: 80px 20px 100px; /* Slightly reduced top padding to accommodate logo */
+    background: linear-gradient(rgba(44, 30, 22, 0.8), rgba(44, 30, 22, 0.8)), url('hero-lanes.png') no-repeat center center/cover;
+    border-bottom: 4px solid var(--accent-red);
+}
+
+.hero-logo {
+    height: 190px; /* Enlarged for the center stage */
+    width: auto;
+    margin-bottom: 25px; /* Pushes the text down slightly */
+    border-radius: 16px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4); /* Makes the logo lift off the background */
+}
+
+.hero h1 { font-size: 4.5rem; margin-bottom: 1rem; line-height: 1.1; letter-spacing: 3px; }
+.hero p { font-size: 1.1rem; max-width: 600px; margin: 0 auto 2rem; }
+
+.btn {
+    display: inline-block;
+    background-color: var(--accent-red);
+    color: white;
+    padding: 12px 35px;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 1.4rem;
+    transition: background-color 0.3s, transform 0.2s;
+    box-shadow: 3px 3px 0px rgba(0,0,0,0.2);
+    text-align: center;
+}
+.btn:hover { background-color: #9A281E; transform: translateY(-2px); }
+
+/* Container for content sections */
+.container { max-width: 1000px; margin: 0 auto; padding: 70px 20px; }
+h2 { font-size: 3.2rem; color: var(--primary-dark); margin-bottom: 1.5rem; text-align: center; line-height: 1.1; }
+
+/* Grid Layouts */
+.grid-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.feature-box {
+    background: #FFFFFF;
+    padding: 2.5rem 2rem;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    border-top: 6px solid var(--accent-red);
+    box-shadow: 6px 6px 0px rgba(62, 39, 35, 0.08);
+    text-align: center;
+}
+.feature-box h3 { font-size: 2rem; color: var(--primary-dark); margin-bottom: 1rem; }
+.feature-box p { font-size: 1rem; }
+
+/* Carousel Section */
+.carousel-container {
+    width: 100%;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 1rem;
+    margin-top: 2rem;
+}
+
+.carousel { display: flex; gap: 1.5rem; scroll-snap-type: x mandatory; }
+.carousel img {
+    scroll-snap-align: center;
+    width: 90vw;
+    max-width: 800px;
+    aspect-ratio: 3/2;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 2px solid var(--primary-dark);
+    flex-shrink: 0;
+    -webkit-user-drag: none; 
+}
+
+.carousel-container::-webkit-scrollbar { height: 12px; }
+.carousel-container::-webkit-scrollbar-track { background: var(--section-bg); border-radius: 6px; }
+.carousel-container::-webkit-scrollbar-thumb { background: var(--primary-dark); border-radius: 6px; border: 2px solid var(--section-bg); }
+
+/* Payment Section */
+.payment-grid { display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin-top: 2rem; }
+.payment-card {
+    background: #FFFFFF;
+    padding: 1.5rem;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    border-top: 5px solid var(--primary-dark);
+    box-shadow: 6px 6px 0px rgba(62, 39, 35, 0.08);
+    width: 220px;
+    text-align: center;
+}
+.payment-card h3 { color: var(--primary-dark); font-size: 1.8rem; margin-bottom: 0.5rem; }
+.qr-code { width: 100%; height: auto; margin: 1rem 0; border-radius: 4px; border: 1px solid var(--border-color); }
+
+/* Footer */
+footer {
+    background-color: var(--primary-dark);
+    color: var(--bg-cream);
+    text-align: center;
+    padding: 2.5rem 20px;
+    border-top: 4px solid var(--accent-red);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem;
+    letter-spacing: 1px;
+}
+
+/* Responsive Mobile Optimizations */
+@media (max-width: 768px) {
+    .container { padding: 50px 20px; }
+    h2 { font-size: 2.5rem; }
+    .hero { padding: 50px 15px 70px; }
+    .hero-logo { height: 85px; margin-bottom: 20px; } /* Scales down smoothly for phones */
+    .hero h1 { font-size: 3.2rem; }
+    
+    .logo { font-size: 1.6rem; }
+    
+    .mobile-menu-toggle { display: block; }
+    
+    nav ul { 
+        display: none; 
+        flex-direction: column; 
+        position: absolute;
+        top: 100%; left: 0; width: 100%;
+        background-color: var(--primary-dark);
+        padding: 1rem 0; text-align: center; gap: 0;
+        border-bottom: 3px solid var(--accent-red);
+        box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3);
+    }
+    nav ul.active { display: flex; }
+    nav a { display: block; padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    nav a:last-child { border-bottom: none; }
+}
