@@ -5,13 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Book a lane at No. Chelmsford Lanes.">
     <title>Book a Lane | No. Chelmsford Lanes</title>
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/socket.io/socket.io.js"></script>
 
     <style>
-        /* CSS Reset & Vintage Variables */
         :root {
             --primary-dark: #3E2723;
             --accent-red: #B73225;
@@ -20,14 +21,14 @@
             --text-dark: #2C1E16;
             --border-color: #D4C5B0;
             --available-green: #4A6741;
-            --warning-orange: #D47A2A; 
+            --warning-orange: #D47A2A;
         }
-        
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html { scroll-behavior: smooth; }
-        
+
         body {
-            font-family: 'Libre Baskerville', serif; 
+            font-family: 'Libre Baskerville', serif;
             line-height: 1.6;
             color: var(--text-dark);
             background-color: var(--bg-cream);
@@ -40,7 +41,6 @@
             font-weight: normal;
         }
 
-        /* Navigation */
         header {
             background-color: var(--primary-dark);
             color: var(--bg-cream);
@@ -66,27 +66,24 @@
             color: var(--bg-cream); font-size: 2rem; cursor: pointer; padding: 0.25rem;
         }
 
-        /* Page Header */
         .page-header {
             background-color: var(--section-bg);
             padding: 50px 20px;
             text-align: center;
             border-bottom: 2px solid var(--border-color);
         }
-        
+
         .page-header h1 { font-size: 3.5rem; color: var(--primary-dark); margin-bottom: 0.5rem; }
         .page-header p { font-size: 1.1rem; max-width: 650px; margin: 0 auto; }
 
-        /* Container & Grid */
         .container { max-width: 1200px; margin: 0 auto; padding: 50px 20px; }
-        
+
         .lane-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
             gap: 2.5rem;
         }
 
-        /* Lane Card Styling */
         .lane-card {
             background: #FFFFFF;
             border-radius: 4px;
@@ -112,7 +109,7 @@
         .lane-card.booked .card-header { background-color: var(--accent-red); }
 
         .lane-number { font-size: 2.5rem; line-height: 1; }
-        
+
         .status-badge {
             background: var(--bg-cream);
             color: var(--primary-dark);
@@ -126,9 +123,8 @@
         .lane-card.available .status-badge { color: var(--available-green); }
         .lane-card.booked .status-badge { color: var(--warning-orange); }
 
-        /* Card Body & Form Elements */
-        .card-body { padding: 1.5rem; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
-        
+        .card-body { padding: 1.5rem; flex-grow: 1; display: flex; flex-direction: column; }
+
         .form-group { margin-bottom: 1.2rem; }
         .form-row { display: flex; gap: 1rem; }
         .form-row .form-group { flex: 1; margin-bottom: 1.2rem; }
@@ -140,7 +136,7 @@
             margin-bottom: 0.4rem;
             font-size: 0.9rem;
         }
-        
+
         .form-group input, .form-group select {
             width: 100%;
             padding: 10px;
@@ -153,12 +149,12 @@
             box-sizing: border-box;
         }
 
-        .form-group input:focus, .form-group select:focus { 
-            outline: none; 
-            border-color: var(--primary-dark); 
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-dark);
         }
 
-        .booked-info { 
+        .booked-info {
             background-color: var(--section-bg);
             padding: 1rem;
             border-radius: 4px;
@@ -167,10 +163,9 @@
             border: 1px dashed var(--warning-orange);
         }
         .booked-info p { font-size: 0.95rem; margin: 0; }
-        .booked-info .name { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; color: var(--primary-dark); display: block; line-height: 1.2; margin: 5px 0;}
-        .booked-info .opening-time { font-weight: bold; color: var(--accent-red); margin-top: 5px; display: block;}
+        .booked-info .name { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; color: var(--primary-dark); display: block; line-height: 1.2; margin: 5px 0; }
+        .booked-info .opening-time { font-weight: bold; color: var(--accent-red); margin-top: 5px; display: block; }
 
-        /* Buttons */
         .btn {
             display: block;
             width: 100%;
@@ -178,21 +173,71 @@
             background-color: var(--available-green);
             color: white;
             padding: 12px 20px;
-            text-decoration: none;
             border: none;
             border-radius: 4px;
             font-size: 1.4rem;
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 1.5px;
             cursor: pointer;
             transition: background-color 0.3s, transform 0.2s;
             box-shadow: 3px 3px 0px rgba(0,0,0,0.2);
             margin-top: auto;
         }
-        
+
         .btn:hover { background-color: #385031; transform: translateY(-2px); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
         .lane-card.booked .btn { background-color: var(--warning-orange); }
         .lane-card.booked .btn:hover { background-color: #B56520; }
 
-        /* Footer */
+        .form-error {
+            color: var(--accent-red);
+            font-size: 0.88rem;
+            margin-bottom: 0.8rem;
+        }
+
+        /* Toast notification */
+        #toast {
+            position: fixed;
+            top: -120px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #3a7d44;
+            color: #fff;
+            padding: 16px 28px;
+            border-radius: 6px;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.25);
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.4rem;
+            letter-spacing: 1.5px;
+            z-index: 999;
+            transition: top 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            white-space: nowrap;
+        }
+        #toast.show { top: 24px; }
+
+        .no-slots-msg {
+            text-align: center;
+            font-style: italic;
+            color: var(--text-dark);
+            padding: 2rem 0;
+            opacity: 0.7;
+            margin-top: auto;
+        }
+
+        .booking-success {
+            text-align: center;
+            padding: 2rem 1rem;
+        }
+
+        .success-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.2rem;
+            color: var(--available-green);
+            display: block;
+            margin-bottom: 0.5rem;
+            letter-spacing: 1.5px;
+        }
+
         footer {
             background-color: var(--primary-dark);
             color: var(--bg-cream);
@@ -205,13 +250,12 @@
             margin-top: 40px;
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
             .page-header { padding: 40px 20px; }
             .page-header h1 { font-size: 2.8rem; }
             .logo { font-size: 1.6rem; }
             .mobile-menu-toggle { display: block; }
-            nav ul { 
+            nav ul {
                 display: none; flex-direction: column; position: absolute;
                 top: 100%; left: 0; width: 100%; background-color: var(--primary-dark);
                 padding: 1rem 0; text-align: center; gap: 0;
@@ -243,351 +287,280 @@
 
     <section class="page-header">
         <h1>Reserve Your Spot on the Wood</h1>
-        <p>We are rolling daily from <strong>9:00 AM to 6:00 PM</strong>. A standard round is 45 minutes. Select your party size, date, duration, and grab a lane now—or book an upcoming slot if the wood is currently occupied.</p>
+        <p>We are rolling daily from <strong>9:00 AM to 6:00 PM</strong>. Reservations are booked in 1-hour slots. Select your lane, date, and time — or grab a future slot if the wood is currently occupied.</p>
     </section>
 
     <main class="container">
-        <div class="lane-grid">
-            
-            <!-- Lane 1: Available Now -->
-            <div class="lane-card available">
-                <div class="card-header">
-                    <span class="lane-number">Lane 1</span>
-                    <span class="status-badge">Available Now</span>
-                </div>
-                <div class="card-body">
-                    <form action="#" method="POST">
-                        <div class="form-group">
-                            <label for="name1">Bowler / Party Name</label>
-                            <input type="text" id="name1" placeholder="e.g. The Pin Pals" required>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="adults1">Adults</label>
-                                <input type="number" id="adults1" min="1" max="6" value="1" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="children1">Children</label>
-                                <input type="number" id="children1" min="0" max="6" value="0" required>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="date1">Date</label>
-                            <input type="date" id="date1" required>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="time1">Start Time</label>
-                                <select id="time1">
-                                    <option value="0900">9:00 AM</option>
-                                    <option value="0945">9:45 AM</option>
-                                    <option value="1030">10:30 AM</option>
-                                    <option value="1115">11:15 AM</option>
-                                    <option value="1200">12:00 PM</option>
-                                    <option value="1330">1:30 PM</option>
-                                    <option value="1500">3:00 PM</option>
-                                    <option value="1715">5:15 PM</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="duration1">Duration</label>
-                                <select id="duration1">
-                                    <option value="1">1 Round (45m)</option>
-                                    <option value="2">2 Rounds (1.5h)</option>
-                                    <option value="3">3 Rounds (2.25h)</option>
-                                </select>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn">Reserve Lane 1</button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Lane 2: Booked (But Bookable Later) -->
-            <div class="lane-card booked">
-                <div class="card-header">
-                    <span class="lane-number">Lane 2</span>
-                    <span class="status-badge">Occupied</span>
-                </div>
-                <div class="card-body">
-                    <div class="booked-info">
-                        <p>Currently rolling:</p>
-                        <span class="name">Miller Family</span>
-                        <span class="opening-time">Next Available Today: 10:30 AM</span>
-                    </div>
-                    <form action="#" method="POST">
-                        <div class="form-group">
-                            <label for="name2">Bowler / Party Name</label>
-                            <input type="text" id="name2" placeholder="e.g. The Gutter Gang" required>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="adults2">Adults</label>
-                                <input type="number" id="adults2" min="1" max="6" value="1" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="children2">Children</label>
-                                <input type="number" id="children2" min="0" max="6" value="0" required>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="date2">Date</label>
-                            <input type="date" id="date2" required>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="time2">Start Time</label>
-                                <select id="time2">
-                                    <option value="1030" selected>10:30 AM</option>
-                                    <option value="1115">11:15 AM</option>
-                                    <option value="1200">12:00 PM</option>
-                                    <option value="1330">1:30 PM</option>
-                                    <option value="1500">3:00 PM</option>
-                                    <option value="1715">5:15 PM</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="duration2">Duration</label>
-                                <select id="duration2">
-                                    <option value="1">1 Round (45m)</option>
-                                    <option value="2">2 Rounds (1.5h)</option>
-                                </select>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn">Book for Later</button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Lane 3: Available Now -->
-            <div class="lane-card available">
-                <div class="card-header">
-                    <span class="lane-number">Lane 3</span>
-                    <span class="status-badge">Available Now</span>
-                </div>
-                <div class="card-body">
-                    <form action="#" method="POST">
-                        <div class="form-group">
-                            <label for="name3">Bowler / Party Name</label>
-                            <input type="text" id="name3" placeholder="e.g. The Pin Pals" required>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="adults3">Adults</label>
-                                <input type="number" id="adults3" min="1" max="6" value="1" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="children3">Children</label>
-                                <input type="number" id="children3" min="0" max="6" value="0" required>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="date3">Date</label>
-                            <input type="date" id="date3" required>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="time3">Start Time</label>
-                                <select id="time3">
-                                    <option value="0900">9:00 AM</option>
-                                    <option value="0945">9:45 AM</option>
-                                    <option value="1030">10:30 AM</option>
-                                    <option value="1115">11:15 AM</option>
-                                    <option value="1200">12:00 PM</option>
-                                    <option value="1330">1:30 PM</option>
-                                    <option value="1500">3:00 PM</option>
-                                    <option value="1715">5:15 PM</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="duration3">Duration</label>
-                                <select id="duration3">
-                                    <option value="1">1 Round (45m)</option>
-                                    <option value="2">2 Rounds (1.5h)</option>
-                                    <option value="3">3 Rounds (2.25h)</option>
-                                </select>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn">Reserve Lane 3</button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Lane 4: Available Now -->
-            <div class="lane-card available">
-                <div class="card-header">
-                    <span class="lane-number">Lane 4</span>
-                    <span class="status-badge">Available Now</span>
-                </div>
-                <div class="card-body">
-                    <form action="#" method="POST">
-                        <div class="form-group">
-                            <label for="name4">Bowler / Party Name</label>
-                            <input type="text" id="name4" placeholder="e.g. The Pin Pals" required>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="adults4">Adults</label>
-                                <input type="number" id="adults4" min="1" max="6" value="1" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="children4">Children</label>
-                                <input type="number" id="children4" min="0" max="6" value="0" required>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="date4">Date</label>
-                            <input type="date" id="date4" required>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="time4">Start Time</label>
-                                <select id="time4">
-                                    <option value="0900">9:00 AM</option>
-                                    <option value="0945">9:45 AM</option>
-                                    <option value="1030">10:30 AM</option>
-                                    <option value="1115">11:15 AM</option>
-                                    <option value="1200">12:00 PM</option>
-                                    <option value="1330">1:30 PM</option>
-                                    <option value="1500">3:00 PM</option>
-                                    <option value="1715">5:15 PM</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="duration4">Duration</label>
-                                <select id="duration4">
-                                    <option value="1">1 Round (45m)</option>
-                                    <option value="2">2 Rounds (1.5h)</option>
-                                    <option value="3">3 Rounds (2.25h)</option>
-                                </select>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn">Reserve Lane 4</button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Lane 5: Booked (But Bookable Later) -->
-            <div class="lane-card booked">
-                <div class="card-header">
-                    <span class="lane-number">Lane 5</span>
-                    <span class="status-badge">Occupied</span>
-                </div>
-                <div class="card-body">
-                    <div class="booked-info">
-                        <p>Currently rolling:</p>
-                        <span class="name">Charlie D.</span>
-                        <span class="opening-time">Next Available Today: 1:30 PM</span>
-                    </div>
-                    <form action="#" method="POST">
-                        <div class="form-group">
-                            <label for="name5">Bowler / Party Name</label>
-                            <input type="text" id="name5" placeholder="e.g. Spare Me" required>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="adults5">Adults</label>
-                                <input type="number" id="adults5" min="1" max="6" value="1" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="children5">Children</label>
-                                <input type="number" id="children5" min="0" max="6" value="0" required>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="date5">Date</label>
-                            <input type="date" id="date5" required>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="time5">Start Time</label>
-                                <select id="time5">
-                                    <option value="1330" selected>1:30 PM</option>
-                                    <option value="1415">2:15 PM</option>
-                                    <option value="1500">3:00 PM</option>
-                                    <option value="1715">5:15 PM</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="duration5">Duration</label>
-                                <select id="duration5">
-                                    <option value="1">1 Round (45m)</option>
-                                    <option value="2">2 Rounds (1.5h)</option>
-                                </select>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn">Book for Later</button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Lane 6: Booked (But Bookable Later) -->
-            <div class="lane-card booked">
-                <div class="card-header">
-                    <span class="lane-number">Lane 6</span>
-                    <span class="status-badge">Occupied</span>
-                </div>
-                <div class="card-body">
-                    <div class="booked-info">
-                        <p>Currently rolling:</p>
-                        <span class="name">Saturday League</span>
-                        <span class="opening-time">Next Available Today: 4:30 PM</span>
-                    </div>
-                    <form action="#" method="POST">
-                        <div class="form-group">
-                            <label for="name6">Bowler / Party Name</label>
-                            <input type="text" id="name6" placeholder="e.g. Pin Pushers" required>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="adults6">Adults</label>
-                                <input type="number" id="adults6" min="1" max="6" value="1" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="children6">Children</label>
-                                <input type="number" id="children6" min="0" max="6" value="0" required>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="date6">Date</label>
-                            <input type="date" id="date6" required>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="time6">Start Time</label>
-                                <select id="time6">
-                                    <option value="1630" selected>4:30 PM</option>
-                                    <option value="1715">5:15 PM</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="duration6">Duration</label>
-                                <select id="duration6">
-                                    <option value="1">1 Round (45m)</option>
-                                    <option value="2">2 Rounds (1.5h)</option>
-                                </select>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn">Book for Later</button>
-                    </form>
-                </div>
-            </div>
-
-        </div>
+        <div class="lane-grid"></div>
     </main>
+
+    <div id="toast"></div>
 
     <footer>
         <p>&copy; 2026 No. Chelmsford Lanes. Keeping tradition rolling.</p>
     </footer>
 
     <script>
-        // Mobile Menu Logic
+        // ── Mobile Menu ──────────────────────────────────────────────────
         const menuToggle = document.querySelector('.mobile-menu-toggle');
         const navMenu = document.querySelector('nav ul');
+        menuToggle.addEventListener('click', () => navMenu.classList.toggle('active'));
 
-        menuToggle.addEventListener('click', () => {
-            navMenu.classList.toggle('active');
-        });
+        // ── Constants ────────────────────────────────────────────────────
+        const TIME_SLOTS = [
+            { value: '0900', label: '9:00 AM' },
+            { value: '1000', label: '10:00 AM' },
+            { value: '1100', label: '11:00 AM' },
+            { value: '1200', label: '12:00 PM' },
+            { value: '1300', label: '1:00 PM' },
+            { value: '1400', label: '2:00 PM' },
+            { value: '1500', label: '3:00 PM' },
+            { value: '1600', label: '4:00 PM' },
+            { value: '1700', label: '5:00 PM' },
+        ];
+        const TODAY = new Date().toISOString().split('T')[0];
+
+        // ── State ─────────────────────────────────────────────────────────
+        const rsvCache = {}; // { [date]: reservation[] }
+
+        // ── Supabase Init ─────────────────────────────────────────────────
+        async function initSupabase() {
+            const res = await fetch('/api/config');
+            const { supabaseUrl, supabaseAnonKey } = await res.json();
+            window._sb = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+        }
+
+        // ── Socket.IO ─────────────────────────────────────────────────────
+        function initSocket() {
+            const socket = io();
+            socket.on('reservation:new', (rsv) => {
+                const d = rsv.reservation_date;
+                if (!rsvCache[d]) rsvCache[d] = [];
+                rsvCache[d].push(rsv);
+                rerenderCard(rsv.lane_id);
+            });
+        }
+
+        // ── Data ──────────────────────────────────────────────────────────
+        async function fetchReservations(date) {
+            if (rsvCache[date]) return rsvCache[date];
+            const res = await fetch(`/api/reservations?date=${date}`);
+            const data = await res.json();
+            rsvCache[date] = Array.isArray(data) ? data : [];
+            return rsvCache[date];
+        }
+
+        // ── Helpers ───────────────────────────────────────────────────────
+        function esc(s) {
+            return String(s)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function getOccupant(laneId) {
+            const slot = String(new Date().getHours()).padStart(2, '0') + '00';
+            return (rsvCache[TODAY] || []).find(r =>
+                r.lane_id === laneId &&
+                r.start_time === slot &&
+                (r.status === 'pending' || r.status === 'seated')
+            ) || null;
+        }
+
+        function nextAvailableLabel(laneId) {
+            const taken = new Set(
+                (rsvCache[TODAY] || []).filter(r => r.lane_id === laneId).map(r => r.start_time)
+            );
+            const nowInt = new Date().getHours() * 100;
+            const next = TIME_SLOTS.find(s => parseInt(s.value) > nowInt && !taken.has(s.value));
+            return next ? next.label : 'Tomorrow';
+        }
+
+        function availableSlots(laneId, date) {
+            const taken = new Set(
+                (rsvCache[date] || []).filter(r => r.lane_id === laneId).map(r => r.start_time)
+            );
+            const isToday = date === TODAY;
+            const nowInt = new Date().getHours() * 100;
+            return TIME_SLOTS.filter(s => {
+                if (isToday && parseInt(s.value) <= nowInt) return false;
+                return !taken.has(s.value);
+            });
+        }
+
+        // ── Render ────────────────────────────────────────────────────────
+        function buildCard(laneId) {
+            const occupant = getOccupant(laneId);
+            const occupied = occupant !== null;
+            const slots = availableSlots(laneId, TODAY);
+
+            const bookedInfo = occupied ? `
+                <div class="booked-info">
+                    <p>Currently rolling:</p>
+                    <span class="name">${esc(occupant.party_name)}</span>
+                    <span class="opening-time">Next Available Today: ${nextAvailableLabel(laneId)}</span>
+                </div>` : '';
+
+            const slotOptions = slots.map(s => `<option value="${s.value}">${s.label}</option>`).join('');
+
+            const formContent = slots.length === 0
+                ? `<p class="no-slots-msg">No more available slots today.</p>`
+                : `<form data-lane="${laneId}">
+                    <div class="form-group">
+                        <label for="name${laneId}">Bowler / Party Name</label>
+                        <input type="text" id="name${laneId}" placeholder="e.g. The Pin Pals" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="adults${laneId}">Adults</label>
+                            <input type="number" id="adults${laneId}" min="1" max="6" value="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="children${laneId}">Children</label>
+                            <input type="number" id="children${laneId}" min="0" max="6" value="0">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="date${laneId}">Date</label>
+                        <input type="date" id="date${laneId}" value="${TODAY}" min="${TODAY}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="time${laneId}">Start Time</label>
+                        <select id="time${laneId}">${slotOptions}</select>
+                    </div>
+                    <button type="submit" class="btn">${occupied ? 'Book for Later' : `Reserve Lane ${laneId}`}</button>
+                </form>`;
+
+            return `<div class="lane-card ${occupied ? 'booked' : 'available'}" id="lane-card-${laneId}">
+                <div class="card-header">
+                    <span class="lane-number">Lane ${laneId}</span>
+                    <span class="status-badge">${occupied ? 'Occupied' : 'Available Now'}</span>
+                </div>
+                <div class="card-body">
+                    ${bookedInfo}
+                    ${formContent}
+                </div>
+            </div>`;
+        }
+
+        function rerenderCard(laneId) {
+            const el = document.getElementById(`lane-card-${laneId}`);
+            if (!el) return;
+            const tmp = document.createElement('div');
+            tmp.innerHTML = buildCard(laneId);
+            const card = tmp.firstElementChild;
+            el.replaceWith(card);
+            bindCard(card, laneId);
+        }
+
+        function bindCard(card, laneId) {
+            const form = card.querySelector('form[data-lane]');
+            if (!form) return;
+            form.addEventListener('submit', handleSubmit);
+            const dateInput = card.querySelector(`#date${laneId}`);
+            if (dateInput) {
+                dateInput.addEventListener('change', async (e) => {
+                    await fetchReservations(e.target.value);
+                    refreshTimeDropdown(laneId, e.target.value);
+                });
+            }
+        }
+
+        function refreshTimeDropdown(laneId, date) {
+            const select = document.getElementById(`time${laneId}`);
+            if (!select) return;
+            const slots = availableSlots(laneId, date);
+            select.innerHTML = slots.length
+                ? slots.map(s => `<option value="${s.value}">${s.label}</option>`).join('')
+                : '<option disabled value="">No slots available</option>';
+        }
+
+        // ── Form Submit ───────────────────────────────────────────────────
+        async function handleSubmit(e) {
+            e.preventDefault();
+            const form = e.target;
+            const laneId = parseInt(form.dataset.lane);
+            const btn = form.querySelector('button[type="submit"]');
+            const origText = btn.textContent;
+
+            const payload = {
+                lane_id: laneId,
+                party_name: form.querySelector(`#name${laneId}`).value.trim(),
+                adults: parseInt(form.querySelector(`#adults${laneId}`).value),
+                children: parseInt(form.querySelector(`#children${laneId}`).value) || 0,
+                reservation_date: form.querySelector(`#date${laneId}`).value,
+                start_time: form.querySelector(`#time${laneId}`).value,
+            };
+
+            btn.disabled = true;
+            btn.textContent = 'Booking...';
+
+            try {
+                const res = await fetch('/api/reservations', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    showError(form, data.error || 'Could not complete booking. Please try again.');
+                    btn.disabled = false;
+                    btn.textContent = origText;
+                    return;
+                }
+
+                const slot = TIME_SLOTS.find(s => s.value === payload.start_time);
+                showToast(`Your booking is set! See you at ${slot ? slot.label : payload.start_time}`);
+                form.closest('.card-body').innerHTML = `
+                    <div class="booking-success">
+                        <span class="success-title">You're booked!</span>
+                        <p>See you at <strong>${slot ? slot.label : payload.start_time}</strong> on <strong>${payload.reservation_date}</strong>.</p>
+                    </div>`;
+            } catch {
+                showError(form, 'Connection error. Please try again.');
+                btn.disabled = false;
+                btn.textContent = origText;
+            }
+        }
+
+        let toastTimer = null;
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => toast.classList.remove('show'), 4000);
+        }
+
+        function showError(form, msg) {
+            let el = form.querySelector('.form-error');
+            if (!el) {
+                el = document.createElement('p');
+                el.className = 'form-error';
+                form.prepend(el);
+            }
+            el.textContent = msg;
+        }
+
+        // ── Boot ──────────────────────────────────────────────────────────
+        async function init() {
+            await initSupabase();
+            initSocket();
+            await fetchReservations(TODAY);
+
+            const grid = document.querySelector('.lane-grid');
+            for (let i = 1; i <= 6; i++) {
+                const tmp = document.createElement('div');
+                tmp.innerHTML = buildCard(i);
+                const card = tmp.firstElementChild;
+                grid.appendChild(card);
+                bindCard(card, i);
+            }
+        }
+
+        init();
     </script>
 </body>
 </html>

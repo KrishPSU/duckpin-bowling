@@ -3,12 +3,19 @@ const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
 const session = require('express-session');
+const { createClient } = require('@supabase/supabase-js');
 
 require('dotenv').config();
 
 const PORT = process.env.PORT || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '123456';
 const SESSION_SECRET = process.env.SESSION_SECRET || 'chelmsford-lanes-change-me-in-production';
+
+// Server-side Supabase client (service role — never expose this key to the browser)
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 const app = express();
 const server = http.createServer(app);
@@ -62,6 +69,66 @@ app.get('/', (req, res) => {
 
 app.get('/reserve', (req, res) => {
   res.sendFile(path.join(__dirname, 'app', 'reserve.html'));
+});
+
+// Exposes only the anon key — safe for the browser, never the service role key
+app.get('/api/config', (req, res) => {
+  res.json({
+    supabaseUrl: process.env.SUPABASE_URL,
+    supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
+  });
+});
+
+// ── Reservations API ─────────────────────────────────────────────
+app.get('/api/reservations', async (req, res) => {
+  const date = req.query.date || new Date().toISOString().split('T')[0];
+  const { data, error } = await supabase
+    .from('reservations')
+    .select('*')
+    .eq('reservation_date', date)
+    .in('status', ['pending', 'seated']);
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
+});
+
+app.post('/api/reservations', async (req, res) => {
+  const { party_name, lane_id, reservation_date, start_time, adults, children } = req.body;
+
+  if (!party_name || !lane_id || !reservation_date || !start_time || !adults) {
+    return res.status(400).json({ error: 'Missing required fields.' });
+  }
+
+  const { data: conflict, error: checkError } = await supabase
+    .from('reservations')
+    .select('id')
+    .eq('lane_id', lane_id)
+    .eq('reservation_date', reservation_date)
+    .eq('start_time', start_time)
+    .in('status', ['pending', 'seated'])
+    .maybeSingle();
+
+  if (checkError) return res.status(500).json({ error: checkError.message });
+  if (conflict) return res.status(409).json({ error: 'That time slot is already taken.' });
+
+  const { data, error } = await supabase
+    .from('reservations')
+    .insert({
+      party_name: party_name.trim(),
+      lane_id: parseInt(lane_id),
+      reservation_date,
+      start_time,
+      duration_rounds: 1,
+      adults: parseInt(adults),
+      children: parseInt(children) || 0,
+      status: 'pending',
+    })
+    .select()
+    .single();
+
+  if (error) return res.status(500).json({ error: error.message });
+
+  io.emit('reservation:new', data);
+  res.status(201).json(data);
 });
 
 // ── Admin login ──────────────────────────────────────────────────
