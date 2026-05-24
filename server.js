@@ -10,6 +10,7 @@ require('dotenv').config();
 const PORT = process.env.PORT || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '123456';
 const SESSION_SECRET = process.env.SESSION_SECRET || 'chelmsford-lanes-change-me-in-production';
+const TOTAL_LANES = 6;
 
 // Server-side Supabase client (service role — never expose this key to the browser)
 const supabase = createClient(
@@ -59,6 +60,7 @@ app.use(session({
 // ── Auth guard middleware ─────────────────────────────────────────
 function requireAdmin(req, res, next) {
   if (req.session && req.session.isAdmin) return next();
+  if (req.path.startsWith('/api/')) return res.status(401).json({ error: 'Unauthorized.' });
   res.redirect('/admin/login');
 }
 
@@ -80,6 +82,22 @@ app.get('/api/config', (req, res) => {
 });
 
 // ── Reservations API ─────────────────────────────────────────────
+
+// Returns lightweight slot counts for a date range — used by the calendar view
+app.get('/api/availability', async (req, res) => {
+  const { start, end } = req.query;
+  if (!start || !end) return res.status(400).json({ error: 'start and end required' });
+  const { data, error } = await supabase
+    .from('reservations')
+    .select('id, reservation_date, start_time')
+    .gte('reservation_date', start)
+    .lte('reservation_date', end)
+    .in('status', ['pending', 'seated']);
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
+});
+
+// Returns all pending/seated reservations for a date (used by reserve.html for slot availability)
 app.get('/api/reservations', async (req, res) => {
   const date = req.query.date || new Date().toISOString().split('T')[0];
   const { data, error } = await supabase
@@ -91,36 +109,41 @@ app.get('/api/reservations', async (req, res) => {
   res.json(data);
 });
 
+// Create a reservation — no lane assigned at booking time; lane assigned in person on arrival.
+// NOTE: The `lane_id` column in the `reservations` table must allow NULL.
+// Run this in Supabase SQL editor if needed:
+//   ALTER TABLE reservations ALTER COLUMN lane_id DROP NOT NULL;
 app.post('/api/reservations', async (req, res) => {
-  const { party_name, lane_id, reservation_date, start_time, adults, children } = req.body;
+  const { party_name, reservation_date, start_time, adults, children } = req.body;
 
-  if (!party_name || !lane_id || !reservation_date || !start_time || !adults) {
+  if (!party_name || !reservation_date || !start_time || !adults) {
     return res.status(400).json({ error: 'Missing required fields.' });
   }
 
-  const { data: conflict, error: checkError } = await supabase
+  // Check capacity: each time slot supports at most TOTAL_LANES concurrent parties
+  const { count, error: countError } = await supabase
     .from('reservations')
-    .select('id')
-    .eq('lane_id', lane_id)
+    .select('id', { count: 'exact', head: true })
     .eq('reservation_date', reservation_date)
     .eq('start_time', start_time)
-    .in('status', ['pending', 'seated'])
-    .maybeSingle();
+    .in('status', ['pending', 'seated']);
 
-  if (checkError) return res.status(500).json({ error: checkError.message });
-  if (conflict) return res.status(409).json({ error: 'That time slot is already taken.' });
+  if (countError) return res.status(500).json({ error: countError.message });
+  if (count >= TOTAL_LANES) {
+    return res.status(409).json({ error: 'All lanes are fully booked for that time slot. Please choose a different time.' });
+  }
 
   const { data, error } = await supabase
     .from('reservations')
     .insert({
       party_name: party_name.trim(),
-      lane_id: parseInt(lane_id),
       reservation_date,
       start_time,
       duration_rounds: 1,
       adults: parseInt(adults),
       children: parseInt(children) || 0,
       status: 'pending',
+      // lane_id intentionally omitted — assigned by staff when party arrives
     })
     .select()
     .single();
@@ -129,6 +152,88 @@ app.post('/api/reservations', async (req, res) => {
 
   io.emit('reservation:new', data);
   res.status(201).json(data);
+});
+
+// ── Admin Reservations API ───────────────────────────────────────
+
+// Returns all pending/seated reservations for a date, ordered by time then creation
+app.get('/api/admin/reservations', requireAdmin, async (req, res) => {
+  const date = req.query.date || new Date().toISOString().split('T')[0];
+  const { data, error } = await supabase
+    .from('reservations')
+    .select('*')
+    .eq('reservation_date', date)
+    .in('status', ['pending', 'seated'])
+    .order('start_time', { ascending: true });
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
+});
+
+// Seat a party: assign a lane and mark status as 'seated'
+app.patch('/api/admin/reservations/:id/seat', requireAdmin, async (req, res) => {
+  const { id } = req.params;
+  const { lane_id } = req.body;
+
+  const laneNum = parseInt(lane_id);
+  if (!lane_id || isNaN(laneNum) || laneNum < 1 || laneNum > TOTAL_LANES) {
+    return res.status(400).json({ error: `A valid lane (1–${TOTAL_LANES}) is required.` });
+  }
+
+  // Fetch the reservation to get its date and time for conflict check
+  const { data: existing, error: fetchError } = await supabase
+    .from('reservations')
+    .select('id, start_time, reservation_date, status')
+    .eq('id', id)
+    .single();
+
+  if (fetchError || !existing) return res.status(404).json({ error: 'Reservation not found.' });
+
+  // Ensure the selected lane isn't already seated at this time slot
+  const { data: laneConflict } = await supabase
+    .from('reservations')
+    .select('id')
+    .eq('lane_id', laneNum)
+    .eq('reservation_date', existing.reservation_date)
+    .eq('start_time', existing.start_time)
+    .eq('status', 'seated')
+    .neq('id', id)
+    .maybeSingle();
+
+  if (laneConflict) {
+    return res.status(409).json({ error: `Lane ${laneNum} is already occupied at that time slot.` });
+  }
+
+  const { data, error } = await supabase
+    .from('reservations')
+    .update({ status: 'seated', lane_id: laneNum })
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) return res.status(500).json({ error: error.message });
+
+  io.emit('reservation:seated', data);
+  res.json(data);
+});
+
+// Remove a reservation (no-show or cancellation) — marks as cancelled rather than deleting
+app.delete('/api/admin/reservations/:id', requireAdmin, async (req, res) => {
+  const { id } = req.params;
+
+  const { data, error } = await supabase
+    .from('reservations')
+    .update({ status: 'cancelled' })
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    if (error.code === 'PGRST116') return res.status(404).json({ error: 'Reservation not found.' });
+    return res.status(500).json({ error: error.message });
+  }
+
+  io.emit('reservation:removed', { id });
+  res.json({ success: true });
 });
 
 // ── Admin login ──────────────────────────────────────────────────
@@ -167,6 +272,10 @@ app.get('/admin/logout', (req, res) => {
 // ── Protected admin dashboard ────────────────────────────────────
 app.get('/admin', requireAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, 'admin', 'index.html'));
+});
+
+app.get('/admin/admin.js', requireAdmin, (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin', 'admin.js'));
 });
 
 // ── Socket.IO ────────────────────────────────────────────────────

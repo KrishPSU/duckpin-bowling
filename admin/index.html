@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin — Lane Manager | No. Chelmsford Lanes</title>
+    <title>Admin &mdash; Lane Manager | No. Chelmsford Lanes</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <script src="/socket.io/socket.io.js"></script>
 
     <style>
         :root {
@@ -36,16 +37,8 @@
         }
 
         h1, h2, h3,
-        .logo,
-        .admin-label,
-        .tab-btn,
-        .res-name,
-        .lane-overview-title,
-        .lane-status-chip,
-        .section-label,
-        .seated-badge,
-        .btn-action,
-        .empty-state h3 {
+        .logo, .admin-label, .res-name, .section-label,
+        .seated-badge, .btn-action, .empty-state h3, .lane-box-num {
             font-family: 'Bebas Neue', sans-serif;
             letter-spacing: 1.5px;
             font-weight: normal;
@@ -75,6 +68,19 @@
             border-radius: 4px;
             font-size: 1.2rem;
         }
+
+        .btn-logout {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.1rem;
+            color: rgba(244,239,230,0.7);
+            text-decoration: none;
+            padding: 6px 14px;
+            border: 1px solid rgba(244,239,230,0.3);
+            border-radius: 4px;
+            letter-spacing: 1px;
+            transition: color 0.2s, border-color 0.2s;
+        }
+        .btn-logout:hover { color: var(--bg-cream); border-color: rgba(244,239,230,0.8); }
 
         /* ── Status Bar ── */
         .status-bar {
@@ -111,48 +117,113 @@
         /* ── Page Header ── */
         .page-header {
             background-color: var(--section-bg);
-            padding: 40px 20px;
-            text-align: center;
+            padding: 30px 5%;
             border-bottom: 2px solid var(--border-color);
-        }
-
-        .page-header h1 { font-size: 3rem; color: var(--primary-dark); margin-bottom: 0.4rem; }
-        .page-header p { font-size: 1.05rem; max-width: 680px; margin: 0 auto; }
-
-        /* ── Lane Tabs ── */
-        .lane-tabs-wrapper {
-            background: var(--primary-dark);
-            border-bottom: 3px solid var(--accent-red);
-            padding: 0 5%;
-            overflow-x: auto;
-        }
-
-        .lane-tabs { display: flex; gap: 2px; min-width: max-content; }
-
-        .tab-btn {
-            background: transparent;
-            border: none;
-            color: rgba(244,239,230,0.6);
-            padding: 18px 30px;
-            font-size: 1.4rem;
-            cursor: pointer;
-            border-bottom: 4px solid transparent;
-            transition: color 0.2s, border-color 0.2s, background 0.2s;
             display: flex;
             align-items: center;
-            gap: 10px;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .page-header-left h1 { font-size: 2.5rem; color: var(--primary-dark); margin-bottom: 0.1rem; }
+        .page-header-left p { font-size: 0.98rem; }
+
+        .date-picker-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+
+        #admin-date {
+            padding: 8px 12px;
+            border: 2px solid var(--border-color);
+            background-color: #fff;
+            border-radius: 4px;
+            font-family: 'Libre Baskerville', serif;
+            font-size: 0.95rem;
+            color: var(--text-dark);
+        }
+
+        /* ── Lane Status Row ── */
+        .lane-status-section {
+            background: #fff;
+            border-bottom: 2px solid var(--border-color);
+            padding: 1.2rem 5%;
+        }
+
+        .lane-status-label {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+            color: var(--primary-dark);
+            margin-bottom: 0.8rem;
+        }
+
+        .lane-boxes {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 0.6rem;
+        }
+
+        .lane-box {
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            padding: 0.7rem 0.5rem;
+            text-align: center;
+            transition: background 0.2s;
+        }
+
+        .lane-box.available { background: #EDF4ED; border-color: var(--available-green); }
+        .lane-box.occupied  { background: #FFF3E0; border-color: var(--warning-orange); }
+
+        .lane-box-num {
+            font-size: 1.3rem;
+            color: var(--primary-dark);
+            display: block;
+            line-height: 1.1;
+        }
+
+        .lane-box-status {
+            font-size: 0.75rem;
+            font-weight: bold;
+            display: block;
+            margin-top: 2px;
+        }
+
+        .lane-box.available .lane-box-status { color: var(--available-green); }
+        .lane-box.occupied  .lane-box-status { color: var(--warning-orange); }
+
+        .lane-box-party {
+            font-size: 0.7rem;
+            display: block;
+            margin-top: 2px;
+            color: var(--text-dark);
+            overflow: hidden;
+            text-overflow: ellipsis;
             white-space: nowrap;
         }
 
-        .tab-btn:hover { color: var(--bg-cream); background: rgba(255,255,255,0.06); }
+        /* ── Main Content ── */
+        .container { max-width: 900px; margin: 0 auto; padding: 36px 20px 60px; }
 
-        .tab-btn.active {
-            color: var(--bg-cream);
-            border-bottom: 4px solid var(--accent-red);
-            background: rgba(255,255,255,0.09);
+        /* ── Time Slot Group ── */
+        .time-group { margin-bottom: 2.5rem; }
+
+        .time-group-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
         }
 
-        .tab-badge {
+        .section-label { font-size: 1.7rem; color: var(--primary-dark); }
+
+        .slot-badge {
             background: var(--accent-red);
             color: white;
             font-family: 'Libre Baskerville', serif;
@@ -161,62 +232,14 @@
             min-width: 24px;
             height: 24px;
             border-radius: 12px;
-            padding: 0 6px;
+            padding: 0 8px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
         }
 
-        .tab-badge.empty { background: rgba(255,255,255,0.22); }
-
-        /* ── Tab Panels ── */
-        .tab-panel { display: none; }
-        .tab-panel.active { display: block; }
-
-        .container { max-width: 1100px; margin: 0 auto; padding: 40px 20px; }
-
-        /* ── Lane Overview Banner ── */
-        .lane-overview {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 1rem;
-            padding: 1.2rem 1.8rem;
-            border-radius: 4px;
-            margin-bottom: 2rem;
-            border: 1px solid var(--border-color);
-        }
-
-        .lane-overview.occupied  { background-color: #FFF3E0; border-color: var(--warning-orange); }
-        .lane-overview.available { background-color: #EDF4ED; border-color: var(--available-green); }
-
-        .lane-overview-left { display: flex; align-items: center; gap: 1.2rem; }
-        .lane-overview-title { font-size: 2rem; color: var(--primary-dark); }
-
-        .lane-status-chip {
-            font-size: 1.1rem;
-            padding: 5px 18px;
-            border-radius: 20px;
-            color: white;
-        }
-
-        .lane-status-chip.occupied  { background-color: var(--warning-orange); }
-        .lane-status-chip.available { background-color: var(--available-green); }
-
-        .lane-overview-right { font-size: 1rem; color: var(--text-dark); }
-
-        /* ── Section Label ── */
-        .section-label {
-            font-size: 1.6rem;
-            color: var(--primary-dark);
-            margin-bottom: 1.2rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid var(--border-color);
-        }
-
         /* ── Reservation Cards ── */
-        .reservations-list { display: flex; flex-direction: column; gap: 1.5rem; }
+        .reservations-list { display: flex; flex-direction: column; gap: 1.2rem; }
 
         .reservation-card {
             background: #FFFFFF;
@@ -224,14 +247,15 @@
             border-radius: 4px;
             box-shadow: 5px 5px 0px rgba(62,39,35,0.08);
             overflow: hidden;
+            transition: opacity 0.35s ease, transform 0.35s ease;
         }
 
-        .reservation-card.seated { opacity: 0.6; }
+        .reservation-card.seated { opacity: 0.65; }
 
         .res-header {
             background-color: var(--primary-dark);
             color: var(--bg-cream);
-            padding: 1rem 1.5rem;
+            padding: 0.9rem 1.4rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -241,66 +265,58 @@
 
         .res-header.seated-header { background-color: var(--available-green); }
 
-        .res-name { font-size: 2.1rem; line-height: 1; }
+        .res-name { font-size: 1.9rem; line-height: 1; }
 
-        .res-time-tag {
+        .res-lane-tag {
             background: var(--bg-cream);
             color: var(--primary-dark);
-            padding: 5px 18px;
+            padding: 4px 16px;
             border-radius: 20px;
             font-family: 'Bebas Neue', sans-serif;
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             letter-spacing: 1px;
-            white-space: nowrap;
         }
 
-        .res-body { padding: 1.5rem; }
+        .res-body { padding: 1.2rem 1.4rem; }
 
-        /* ── Reservation Details Grid ── */
         .res-details {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 0.9rem;
-            margin-bottom: 1.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 0.8rem;
+            margin-bottom: 1.2rem;
         }
 
         .detail-item {
             background: var(--bg-cream);
-            padding: 0.9rem 1rem;
+            padding: 0.7rem 0.9rem;
             border-radius: 4px;
             border: 1px solid var(--border-color);
         }
 
         .detail-label {
             display: block;
-            font-size: 0.78rem;
+            font-size: 0.75rem;
             font-weight: bold;
             color: var(--accent-red);
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.2rem;
         }
 
-        .detail-value {
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: var(--text-dark);
-        }
+        .detail-value { font-size: 1rem; font-weight: bold; color: var(--text-dark); }
 
         /* ── Action Buttons ── */
-        .res-actions {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
+        .res-actions { display: flex; gap: 0.8rem; flex-wrap: wrap; }
 
         .btn-action {
             flex: 1;
-            min-width: 210px;
-            padding: 18px 20px;
+            min-width: 180px;
+            padding: 14px 18px;
             border: none;
             border-radius: 4px;
-            font-size: 1.55rem;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.4rem;
+            letter-spacing: 1px;
             cursor: pointer;
             transition: background-color 0.2s, transform 0.15s;
             box-shadow: 3px 3px 0px rgba(0,0,0,0.2);
@@ -317,11 +333,82 @@
             display: inline-block;
             background: var(--available-green);
             color: white;
-            font-size: 1.5rem;
-            padding: 14px 28px;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.4rem;
+            padding: 12px 24px;
             border-radius: 4px;
             letter-spacing: 1px;
         }
+
+        /* ── Lane Picker (inline) ── */
+        .lane-picker {
+            background: var(--section-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 1rem 1.2rem;
+        }
+
+        .lane-picker-label {
+            font-size: 0.88rem;
+            font-weight: bold;
+            color: var(--primary-dark);
+            margin-bottom: 0.7rem;
+            display: block;
+        }
+
+        .lane-picker-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .btn-lane {
+            padding: 10px 4px;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            background: white;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s;
+            text-align: center;
+        }
+
+        .btn-lane:hover:not(:disabled) { background: var(--section-bg); border-color: var(--primary-dark); }
+        .btn-lane.selected { background: var(--primary-dark); color: var(--bg-cream); border-color: var(--primary-dark); }
+        .btn-lane:disabled { opacity: 0.45; cursor: not-allowed; font-size: 0.75rem; line-height: 1.2; }
+
+        .lane-picker-actions { display: flex; gap: 0.6rem; }
+
+        .btn-confirm-seat {
+            background: var(--confirm-green);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+            padding: 10px 22px;
+            cursor: pointer;
+        }
+
+        .btn-confirm-seat:hover { background: #1B5E20; }
+        .btn-confirm-seat:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .btn-cancel-seat {
+            background: transparent;
+            color: var(--text-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-family: 'Libre Baskerville', serif;
+            font-size: 0.9rem;
+            padding: 10px 16px;
+            cursor: pointer;
+        }
+
+        .btn-cancel-seat:hover { border-color: var(--primary-dark); }
 
         /* ── Empty State ── */
         .empty-state {
@@ -332,13 +419,8 @@
             border-radius: 4px;
         }
 
-        .empty-state h3 {
-            font-size: 2rem;
-            color: var(--primary-dark);
-            margin-bottom: 0.6rem;
-        }
-
-        .empty-state p { font-size: 1.05rem; color: #666; }
+        .empty-state h3 { font-size: 2rem; color: var(--primary-dark); margin-bottom: 0.5rem; }
+        .empty-state p { font-size: 1rem; color: #666; }
 
         /* ── Footer ── */
         footer {
@@ -350,31 +432,33 @@
             font-family: 'Bebas Neue', sans-serif;
             font-size: 1.1rem;
             letter-spacing: 1px;
-            margin-top: 40px;
         }
 
-        /* ── Responsive ── */
-        @media (max-width: 640px) {
-            .page-header h1 { font-size: 2.3rem; }
-            .tab-btn { padding: 14px 18px; font-size: 1.2rem; }
-            .res-name { font-size: 1.7rem; }
-            .btn-action { font-size: 1.3rem; padding: 16px; }
-            .status-bar { flex-direction: column; align-items: flex-start; }
+        /* ── Loading / Error ── */
+        .loading-msg {
+            text-align: center;
+            font-style: italic;
+            opacity: 0.6;
+            padding: 3rem;
         }
 
-        .btn-logout {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 1.1rem;
-            color: rgba(244, 239, 230, 0.7);
-            text-decoration: none;
-            padding: 6px 14px;
-            border: 1px solid rgba(244, 239, 230, 0.3);
+        .error-msg {
+            background: #FFEBEE;
+            border: 1px solid #FFCDD2;
             border-radius: 4px;
-            letter-spacing: 1px;
-            transition: color 0.2s, border-color 0.2s;
+            padding: 1rem 1.4rem;
+            color: var(--remove-red);
+            margin-bottom: 1rem;
         }
 
-        .btn-logout:hover { color: var(--bg-cream); border-color: rgba(244, 239, 230, 0.8); }
+        @media (max-width: 640px) {
+            .page-header { flex-direction: column; align-items: flex-start; }
+            .lane-boxes { grid-template-columns: repeat(3, 1fr); }
+            .lane-picker-grid { grid-template-columns: repeat(3, 1fr); }
+            .status-bar { flex-direction: column; align-items: flex-start; }
+            .res-name { font-size: 1.5rem; }
+            .btn-action { font-size: 1.2rem; padding: 12px; }
+        }
     </style>
 </head>
 <body>
@@ -388,512 +472,44 @@
 </header>
 
 <div class="status-bar">
-    <div id="current-date">Loading...</div>
+    <div id="current-date">Loading&hellip;</div>
     <div class="summary">
         <span class="summary-chip">Time: <strong id="current-time">--:-- --</strong></span>
-        <span class="summary-chip alert" id="pending-summary">7 Pending Reservations</span>
-        <span class="summary-chip" id="occupied-summary">2 of 6 Lanes Occupied</span>
+        <span class="summary-chip alert" id="pending-summary">0 Pending</span>
+        <span class="summary-chip" id="occupied-summary">0 Lanes Occupied</span>
     </div>
 </div>
 
 <section class="page-header">
-    <h1>Lane Reservation Manager</h1>
-    <p>Review all pending reservations for today. Click <strong>Seat This Party</strong> when they arrive, or <strong>Remove Reservation</strong> if the party did not show up.</p>
+    <div class="page-header-left">
+        <h1>Reservation Queue</h1>
+        <p>Seat parties when they arrive and assign their lane. Remove no-shows to free the slot.</p>
+    </div>
+    <div class="date-picker-wrap">
+        <label for="admin-date">Viewing:</label>
+        <input type="date" id="admin-date">
+    </div>
 </section>
 
-<!-- Lane Tabs -->
-<div class="lane-tabs-wrapper">
-    <div class="lane-tabs" role="tablist">
-        <button class="tab-btn active" onclick="switchTab(1)" role="tab" aria-selected="true">
-            Lane 1 <span class="tab-badge" id="badge-1">2</span>
-        </button>
-        <button class="tab-btn" onclick="switchTab(2)" role="tab" aria-selected="false">
-            Lane 2 <span class="tab-badge" id="badge-2">1</span>
-        </button>
-        <button class="tab-btn" onclick="switchTab(3)" role="tab" aria-selected="false">
-            Lane 3 <span class="tab-badge empty" id="badge-3">0</span>
-        </button>
-        <button class="tab-btn" onclick="switchTab(4)" role="tab" aria-selected="false">
-            Lane 4 <span class="tab-badge" id="badge-4">3</span>
-        </button>
-        <button class="tab-btn" onclick="switchTab(5)" role="tab" aria-selected="false">
-            Lane 5 <span class="tab-badge" id="badge-5">1</span>
-        </button>
-        <button class="tab-btn" onclick="switchTab(6)" role="tab" aria-selected="false">
-            Lane 6 <span class="tab-badge empty" id="badge-6">0</span>
-        </button>
+<!-- Lane Status (current hour) -->
+<div class="lane-status-section">
+    <div class="lane-status-label">Current Lane Status</div>
+    <div class="lane-boxes" id="lane-boxes">
+        <!-- Rendered by JS -->
     </div>
 </div>
 
 <main>
-
-    <!-- ═══════════════ LANE 1 ═══════════════ -->
-    <div id="panel-1" class="tab-panel active">
-        <div class="container">
-            <div class="lane-overview available">
-                <div class="lane-overview-left">
-                    <span class="lane-overview-title">Lane 1</span>
-                    <span class="lane-status-chip available">Available</span>
-                </div>
-                <div class="lane-overview-right">2 pending reservations today</div>
-            </div>
-
-            <div class="section-label">Pending Reservations</div>
-            <div class="reservations-list" id="list-1">
-
-                <div class="reservation-card" id="res-1-1">
-                    <div class="res-header">
-                        <span class="res-name">Smith Family</span>
-                        <span class="res-time-tag">11:00 AM</span>
-                    </div>
-                    <div class="res-body">
-                        <div class="res-details">
-                            <div class="detail-item">
-                                <span class="detail-label">Party Size</span>
-                                <span class="detail-value">4 Adults, 1 Child</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Duration</span>
-                                <span class="detail-value">2 Rounds (1.5 hrs)</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Date</span>
-                                <span class="detail-value">Sat, May 17</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Booked At</span>
-                                <span class="detail-value">9:43 AM today</span>
-                            </div>
-                        </div>
-                        <div class="res-actions">
-                            <button class="btn-action btn-seat" onclick="seatParty('res-1-1', 'badge-1', 'list-1')">
-                                &#10003;&nbsp; Seat This Party
-                            </button>
-                            <button class="btn-action btn-remove" onclick="removeReservation('res-1-1', 'badge-1', 'list-1')">
-                                &#10007;&nbsp; Remove Reservation
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="reservation-card" id="res-1-2">
-                    <div class="res-header">
-                        <span class="res-name">Garcia Group</span>
-                        <span class="res-time-tag">1:30 PM</span>
-                    </div>
-                    <div class="res-body">
-                        <div class="res-details">
-                            <div class="detail-item">
-                                <span class="detail-label">Party Size</span>
-                                <span class="detail-value">2 Adults</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Duration</span>
-                                <span class="detail-value">1 Round (45 min)</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Date</span>
-                                <span class="detail-value">Sat, May 17</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Booked At</span>
-                                <span class="detail-value">10:11 AM today</span>
-                            </div>
-                        </div>
-                        <div class="res-actions">
-                            <button class="btn-action btn-seat" onclick="seatParty('res-1-2', 'badge-1', 'list-1')">
-                                &#10003;&nbsp; Seat This Party
-                            </button>
-                            <button class="btn-action btn-remove" onclick="removeReservation('res-1-2', 'badge-1', 'list-1')">
-                                &#10007;&nbsp; Remove Reservation
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
+    <div class="container" id="main-content">
+        <p class="loading-msg">Loading reservations&hellip;</p>
     </div>
-
-    <!-- ═══════════════ LANE 2 ═══════════════ -->
-    <div id="panel-2" class="tab-panel">
-        <div class="container">
-            <div class="lane-overview occupied">
-                <div class="lane-overview-left">
-                    <span class="lane-overview-title">Lane 2</span>
-                    <span class="lane-status-chip occupied">Occupied</span>
-                </div>
-                <div class="lane-overview-right">Currently rolling: <strong>Miller Family</strong> &mdash; opens at 10:30 AM</div>
-            </div>
-
-            <div class="section-label">Pending Reservations</div>
-            <div class="reservations-list" id="list-2">
-
-                <div class="reservation-card" id="res-2-1">
-                    <div class="res-header">
-                        <span class="res-name">Williams Party</span>
-                        <span class="res-time-tag">10:30 AM</span>
-                    </div>
-                    <div class="res-body">
-                        <div class="res-details">
-                            <div class="detail-item">
-                                <span class="detail-label">Party Size</span>
-                                <span class="detail-value">3 Adults, 2 Children</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Duration</span>
-                                <span class="detail-value">2 Rounds (1.5 hrs)</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Date</span>
-                                <span class="detail-value">Sat, May 17</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Booked At</span>
-                                <span class="detail-value">8:55 AM today</span>
-                            </div>
-                        </div>
-                        <div class="res-actions">
-                            <button class="btn-action btn-seat" onclick="seatParty('res-2-1', 'badge-2', 'list-2')">
-                                &#10003;&nbsp; Seat This Party
-                            </button>
-                            <button class="btn-action btn-remove" onclick="removeReservation('res-2-1', 'badge-2', 'list-2')">
-                                &#10007;&nbsp; Remove Reservation
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </div>
-
-    <!-- ═══════════════ LANE 3 ═══════════════ -->
-    <div id="panel-3" class="tab-panel">
-        <div class="container">
-            <div class="lane-overview available">
-                <div class="lane-overview-left">
-                    <span class="lane-overview-title">Lane 3</span>
-                    <span class="lane-status-chip available">Available</span>
-                </div>
-                <div class="lane-overview-right">No pending reservations today</div>
-            </div>
-
-            <div class="empty-state">
-                <h3>All Clear</h3>
-                <p>No reservations for Lane 3 today. Walk-ins may use this lane.</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- ═══════════════ LANE 4 ═══════════════ -->
-    <div id="panel-4" class="tab-panel">
-        <div class="container">
-            <div class="lane-overview available">
-                <div class="lane-overview-left">
-                    <span class="lane-overview-title">Lane 4</span>
-                    <span class="lane-status-chip available">Available</span>
-                </div>
-                <div class="lane-overview-right">3 pending reservations today</div>
-            </div>
-
-            <div class="section-label">Pending Reservations</div>
-            <div class="reservations-list" id="list-4">
-
-                <div class="reservation-card" id="res-4-1">
-                    <div class="res-header">
-                        <span class="res-name">Patel Family</span>
-                        <span class="res-time-tag">10:30 AM</span>
-                    </div>
-                    <div class="res-body">
-                        <div class="res-details">
-                            <div class="detail-item">
-                                <span class="detail-label">Party Size</span>
-                                <span class="detail-value">2 Adults, 3 Children</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Duration</span>
-                                <span class="detail-value">1 Round (45 min)</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Date</span>
-                                <span class="detail-value">Sat, May 17</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Booked At</span>
-                                <span class="detail-value">9:02 AM today</span>
-                            </div>
-                        </div>
-                        <div class="res-actions">
-                            <button class="btn-action btn-seat" onclick="seatParty('res-4-1', 'badge-4', 'list-4')">
-                                &#10003;&nbsp; Seat This Party
-                            </button>
-                            <button class="btn-action btn-remove" onclick="removeReservation('res-4-1', 'badge-4', 'list-4')">
-                                &#10007;&nbsp; Remove Reservation
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="reservation-card" id="res-4-2">
-                    <div class="res-header">
-                        <span class="res-name">Johnson &amp; Co.</span>
-                        <span class="res-time-tag">12:00 PM</span>
-                    </div>
-                    <div class="res-body">
-                        <div class="res-details">
-                            <div class="detail-item">
-                                <span class="detail-label">Party Size</span>
-                                <span class="detail-value">6 Adults</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Duration</span>
-                                <span class="detail-value">3 Rounds (2.25 hrs)</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Date</span>
-                                <span class="detail-value">Sat, May 17</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Booked At</span>
-                                <span class="detail-value">Yesterday, 4:30 PM</span>
-                            </div>
-                        </div>
-                        <div class="res-actions">
-                            <button class="btn-action btn-seat" onclick="seatParty('res-4-2', 'badge-4', 'list-4')">
-                                &#10003;&nbsp; Seat This Party
-                            </button>
-                            <button class="btn-action btn-remove" onclick="removeReservation('res-4-2', 'badge-4', 'list-4')">
-                                &#10007;&nbsp; Remove Reservation
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="reservation-card" id="res-4-3">
-                    <div class="res-header">
-                        <span class="res-name">Lee Birthday</span>
-                        <span class="res-time-tag">3:00 PM</span>
-                    </div>
-                    <div class="res-body">
-                        <div class="res-details">
-                            <div class="detail-item">
-                                <span class="detail-label">Party Size</span>
-                                <span class="detail-value">4 Adults, 4 Children</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Duration</span>
-                                <span class="detail-value">2 Rounds (1.5 hrs)</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Date</span>
-                                <span class="detail-value">Sat, May 17</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Booked At</span>
-                                <span class="detail-value">Yesterday, 7:12 PM</span>
-                            </div>
-                        </div>
-                        <div class="res-actions">
-                            <button class="btn-action btn-seat" onclick="seatParty('res-4-3', 'badge-4', 'list-4')">
-                                &#10003;&nbsp; Seat This Party
-                            </button>
-                            <button class="btn-action btn-remove" onclick="removeReservation('res-4-3', 'badge-4', 'list-4')">
-                                &#10007;&nbsp; Remove Reservation
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </div>
-
-    <!-- ═══════════════ LANE 5 ═══════════════ -->
-    <div id="panel-5" class="tab-panel">
-        <div class="container">
-            <div class="lane-overview occupied">
-                <div class="lane-overview-left">
-                    <span class="lane-overview-title">Lane 5</span>
-                    <span class="lane-status-chip occupied">Occupied</span>
-                </div>
-                <div class="lane-overview-right">Currently rolling: <strong>Charlie D.</strong> &mdash; opens at 1:30 PM</div>
-            </div>
-
-            <div class="section-label">Pending Reservations</div>
-            <div class="reservations-list" id="list-5">
-
-                <div class="reservation-card" id="res-5-1">
-                    <div class="res-header">
-                        <span class="res-name">O'Brien Family</span>
-                        <span class="res-time-tag">1:30 PM</span>
-                    </div>
-                    <div class="res-body">
-                        <div class="res-details">
-                            <div class="detail-item">
-                                <span class="detail-label">Party Size</span>
-                                <span class="detail-value">2 Adults, 2 Children</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Duration</span>
-                                <span class="detail-value">2 Rounds (1.5 hrs)</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Date</span>
-                                <span class="detail-value">Sat, May 17</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Booked At</span>
-                                <span class="detail-value">10:44 AM today</span>
-                            </div>
-                        </div>
-                        <div class="res-actions">
-                            <button class="btn-action btn-seat" onclick="seatParty('res-5-1', 'badge-5', 'list-5')">
-                                &#10003;&nbsp; Seat This Party
-                            </button>
-                            <button class="btn-action btn-remove" onclick="removeReservation('res-5-1', 'badge-5', 'list-5')">
-                                &#10007;&nbsp; Remove Reservation
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </div>
-
-    <!-- ═══════════════ LANE 6 ═══════════════ -->
-    <div id="panel-6" class="tab-panel">
-        <div class="container">
-            <div class="lane-overview occupied">
-                <div class="lane-overview-left">
-                    <span class="lane-overview-title">Lane 6</span>
-                    <span class="lane-status-chip occupied">Occupied</span>
-                </div>
-                <div class="lane-overview-right">Currently rolling: <strong>Saturday League</strong> &mdash; opens at 4:30 PM</div>
-            </div>
-
-            <div class="empty-state">
-                <h3>No Pending Reservations</h3>
-                <p>This lane opens at 4:30 PM. No upcoming reservations have been made yet.</p>
-            </div>
-        </div>
-    </div>
-
 </main>
 
 <footer>
     <p>&copy; 2026 No. Chelmsford Lanes &mdash; Staff Administration</p>
 </footer>
 
-<script>
-    // ── Tab Switching ──────────────────────────────────────────────
-    function switchTab(laneNum) {
-        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach((b, i) => {
-            b.classList.remove('active');
-            b.setAttribute('aria-selected', 'false');
-        });
-        document.getElementById('panel-' + laneNum).classList.add('active');
-        const btn = document.querySelectorAll('.tab-btn')[laneNum - 1];
-        btn.classList.add('active');
-        btn.setAttribute('aria-selected', 'true');
-    }
-
-    // ── Seat a Party ───────────────────────────────────────────────
-    function seatParty(cardId, badgeId, listId) {
-        const card = document.getElementById(cardId);
-        const name = card.querySelector('.res-name').textContent;
-        const time = card.querySelector('.res-time-tag').textContent;
-
-        if (!confirm('Seat "' + name + '" (' + time + ')?\n\nThis will mark the lane as occupied. Press OK to confirm.')) return;
-
-        card.querySelector('.res-header').classList.add('seated-header');
-        card.querySelector('.res-actions').innerHTML =
-            '<span class="seated-badge">&#10003; Party Seated</span>';
-        card.classList.add('seated');
-
-        decrementBadge(badgeId);
-        updatePendingSummary();
-    }
-
-    // ── Remove a Reservation ───────────────────────────────────────
-    function removeReservation(cardId, badgeId, listId) {
-        const card = document.getElementById(cardId);
-        const name = card.querySelector('.res-name').textContent;
-        const time = card.querySelector('.res-time-tag').textContent;
-
-        if (!confirm(
-            'Remove the reservation for "' + name + '" (' + time + ')?\n\n' +
-            'The time slot will become available online again. Press OK to confirm.'
-        )) return;
-
-        card.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
-        card.style.opacity = '0';
-        card.style.transform = 'translateX(24px)';
-
-        setTimeout(() => {
-            card.remove();
-            checkEmptyState(listId);
-        }, 360);
-
-        decrementBadge(badgeId);
-        updatePendingSummary();
-    }
-
-    // ── Badge Counter ──────────────────────────────────────────────
-    function decrementBadge(badgeId) {
-        const badge = document.getElementById(badgeId);
-        const next = Math.max(0, parseInt(badge.textContent, 10) - 1);
-        badge.textContent = next;
-        if (next === 0) badge.classList.add('empty');
-    }
-
-    // ── Empty State ────────────────────────────────────────────────
-    function checkEmptyState(listId) {
-        const list = document.getElementById(listId);
-        if (!list) return;
-        const remaining = list.querySelectorAll('.reservation-card:not(.seated)');
-        if (remaining.length === 0 && list.querySelector('.seated') === null) {
-            list.innerHTML =
-                '<div class="empty-state">' +
-                '<h3>All Clear</h3>' +
-                '<p>No more pending reservations for this lane.</p>' +
-                '</div>';
-        }
-    }
-
-    // ── Total Pending Summary ──────────────────────────────────────
-    function updatePendingSummary() {
-        let total = 0;
-        for (let i = 1; i <= 6; i++) {
-            total += parseInt(document.getElementById('badge-' + i).textContent, 10) || 0;
-        }
-        const el = document.getElementById('pending-summary');
-        el.textContent = total + (total === 1 ? ' Pending Reservation' : ' Pending Reservations');
-    }
-
-    // ── Live Clock ─────────────────────────────────────────────────
-    function updateClock() {
-        const now = new Date();
-        const h = now.getHours();
-        const m = now.getMinutes().toString().padStart(2, '0');
-        const ampm = h >= 12 ? 'PM' : 'AM';
-        document.getElementById('current-time').textContent =
-            (h % 12 || 12) + ':' + m + ' ' + ampm;
-
-        const days   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-        const months = ['January','February','March','April','May','June','July',
-                        'August','September','October','November','December'];
-        document.getElementById('current-date').textContent =
-            days[now.getDay()] + ', ' + months[now.getMonth()] + ' ' +
-            now.getDate() + ', ' + now.getFullYear();
-    }
-
-    updateClock();
-    setInterval(updateClock, 1000);
-
-</script>
+<script src="/admin/admin.js"></script>
 
 </body>
 </html>

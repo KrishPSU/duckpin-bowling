@@ -35,7 +35,7 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        h1, h2, h3, .logo span, .btn, nav a, .lane-number, .status-badge {
+        h1, h2, h3, .logo span, .btn, nav a, .status-badge {
             font-family: 'Bebas Neue', sans-serif;
             letter-spacing: 1.5px;
             font-weight: normal;
@@ -74,60 +74,226 @@
         }
 
         .page-header h1 { font-size: 3.5rem; color: var(--primary-dark); margin-bottom: 0.5rem; }
-        .page-header p { font-size: 1.1rem; max-width: 650px; margin: 0 auto; }
+        .page-header p { font-size: 1.1rem; max-width: 620px; margin: 0 auto; }
 
-        .container { max-width: 1200px; margin: 0 auto; padding: 50px 20px; }
-
-        .lane-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-            gap: 2.5rem;
+        /* ── Calendar Container ── */
+        .calendar-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
         }
 
-        .lane-card {
+        /* ── Form Container ── */
+        .form-container {
+            max-width: 580px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* ── Calendar Card ── */
+        .cal-card {
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            box-shadow: 6px 6px 0px rgba(62, 39, 35, 0.08);
+            overflow: hidden;
+        }
+
+        .cal-header {
+            background-color: var(--primary-dark);
+            color: var(--bg-cream);
+            padding: 1.5rem 1.8rem;
+            text-align: center;
+        }
+
+        .cal-header h2 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.4rem;
+            letter-spacing: 2px;
+            margin-bottom: 0.2rem;
+        }
+
+        .cal-subtitle {
+            font-size: 0.9rem;
+            opacity: 0.75;
+            font-style: italic;
+        }
+
+        .cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            border-left: 1px solid var(--border-color);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .cal-day-header {
+            background-color: var(--section-bg);
+            text-align: center;
+            padding: 0.6rem 0.3rem;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1rem;
+            letter-spacing: 1px;
+            color: var(--primary-dark);
+            border-right: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .cal-cell {
+            min-height: 88px;
+            border-right: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.45rem 0.5rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .cal-empty {
+            background-color: var(--bg-cream);
+            opacity: 0.5;
+        }
+
+        .cal-past {
+            background-color: #EDE8DF;
+            opacity: 0.55;
+        }
+
+        .cal-free {
+            background-color: #D4EDDA;
+            cursor: pointer;
+            transition: filter 0.15s;
+        }
+        .cal-free:hover { filter: brightness(0.92); }
+
+        .cal-partial {
+            background-color: #FFF3CD;
+            cursor: pointer;
+            transition: filter 0.15s;
+        }
+        .cal-partial:hover { filter: brightness(0.92); }
+
+        .cal-full {
+            background-color: #F8D7DA;
+        }
+
+        .cal-day-num {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1rem;
+            color: var(--primary-dark);
+            line-height: 1;
+            align-self: flex-start;
+        }
+
+        .cal-today .cal-day-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            background-color: var(--accent-red);
+            color: white;
+            border-radius: 50%;
+            font-size: 0.82rem;
+        }
+
+        .cal-status {
+            font-size: 0.72rem;
+            font-weight: bold;
+            text-align: center;
+            margin-top: auto;
+            padding: 0.25rem 0.3rem;
+            border-radius: 3px;
+            line-height: 1.2;
+        }
+
+        .cal-free .cal-status   { color: #155724; }
+        .cal-partial .cal-status { color: #856404; }
+        .cal-full .cal-status   { color: #721c24; }
+        .cal-past .cal-status   { color: #999; font-size: 0.68rem; }
+
+        .cal-legend {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 0.9rem 1rem;
+            background-color: var(--section-bg);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.82rem;
+        }
+
+        .legend-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 2px;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+
+        .legend-green  { background-color: #D4EDDA; border: 1px solid #b8dfc4; }
+        .legend-yellow { background-color: #FFF3CD; border: 1px solid #ffe89a; }
+        .legend-red    { background-color: #F8D7DA; border: 1px solid #f1b8bc; }
+
+        /* ── Back Button ── */
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: none;
+            border: 2px solid var(--primary-dark);
+            color: var(--primary-dark);
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+            padding: 0.45rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 1.2rem;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .back-btn:hover {
+            background-color: var(--primary-dark);
+            color: var(--bg-cream);
+        }
+
+        /* ── Reservation Card ── */
+        .reservation-card {
             background: #FFFFFF;
             border-radius: 4px;
             border: 1px solid var(--border-color);
             box-shadow: 6px 6px 0px rgba(62, 39, 35, 0.08);
-            display: flex;
-            flex-direction: column;
             overflow: hidden;
-            transition: transform 0.2s;
         }
-
-        .lane-card:hover { transform: translateY(-3px); }
 
         .card-header {
+            background-color: var(--primary-dark);
             color: var(--bg-cream);
-            padding: 1.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            padding: 1.5rem 1.8rem;
         }
 
-        .lane-card.available .card-header { background-color: var(--primary-dark); }
-        .lane-card.booked .card-header { background-color: var(--accent-red); }
-
-        .lane-number { font-size: 2.5rem; line-height: 1; }
-
-        .status-badge {
-            background: var(--bg-cream);
-            color: var(--primary-dark);
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 1.2rem;
-            letter-spacing: 1px;
-            box-shadow: 2px 2px 0px rgba(0,0,0,0.2);
+        .card-header h2 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2rem;
+            letter-spacing: 1.5px;
+            margin-bottom: 0.2rem;
         }
 
-        .lane-card.available .status-badge { color: var(--available-green); }
-        .lane-card.booked .status-badge { color: var(--warning-orange); }
+        .lane-note {
+            font-size: 0.92rem;
+            opacity: 0.8;
+            font-style: italic;
+        }
 
-        .card-body { padding: 1.5rem; flex-grow: 1; display: flex; flex-direction: column; }
+        .card-body { padding: 1.8rem; }
 
         .form-group { margin-bottom: 1.2rem; }
         .form-row { display: flex; gap: 1rem; }
-        .form-row .form-group { flex: 1; margin-bottom: 1.2rem; }
+        .form-row .form-group { flex: 1; }
 
         .form-group label {
             display: block;
@@ -146,7 +312,6 @@
             font-family: 'Libre Baskerville', serif;
             font-size: 0.95rem;
             color: var(--text-dark);
-            box-sizing: border-box;
         }
 
         .form-group input:focus, .form-group select:focus {
@@ -154,17 +319,7 @@
             border-color: var(--primary-dark);
         }
 
-        .booked-info {
-            background-color: var(--section-bg);
-            padding: 1rem;
-            border-radius: 4px;
-            margin-bottom: 1.5rem;
-            text-align: center;
-            border: 1px dashed var(--warning-orange);
-        }
-        .booked-info p { font-size: 0.95rem; margin: 0; }
-        .booked-info .name { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; color: var(--primary-dark); display: block; line-height: 1.2; margin: 5px 0; }
-        .booked-info .opening-time { font-weight: bold; color: var(--accent-red); margin-top: 5px; display: block; }
+        .form-group select:disabled { opacity: 0.6; cursor: not-allowed; }
 
         .btn {
             display: block;
@@ -172,22 +327,20 @@
             text-align: center;
             background-color: var(--available-green);
             color: white;
-            padding: 12px 20px;
+            padding: 14px 20px;
             border: none;
             border-radius: 4px;
-            font-size: 1.4rem;
+            font-size: 1.5rem;
             font-family: 'Bebas Neue', sans-serif;
             letter-spacing: 1.5px;
             cursor: pointer;
             transition: background-color 0.3s, transform 0.2s;
             box-shadow: 3px 3px 0px rgba(0,0,0,0.2);
-            margin-top: auto;
+            margin-top: 0.5rem;
         }
 
         .btn:hover { background-color: #385031; transform: translateY(-2px); }
         .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-        .lane-card.booked .btn { background-color: var(--warning-orange); }
-        .lane-card.booked .btn:hover { background-color: #B56520; }
 
         .form-error {
             color: var(--accent-red);
@@ -195,7 +348,90 @@
             margin-bottom: 0.8rem;
         }
 
-        /* Toast notification */
+        /* ── Success State ── */
+        .booking-success {
+            text-align: center;
+            padding: 3rem 1.5rem 2.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+        }
+
+        .success-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background-color: var(--available-green);
+            border: 5px solid #fff;
+            box-shadow: 0 0 0 4px var(--available-green), 0 8px 32px rgba(74,103,65,0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.8rem;
+            animation: pop-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+
+        @keyframes pop-in {
+            from { transform: scale(0.4); opacity: 0; }
+            to   { transform: scale(1);   opacity: 1; }
+        }
+
+        .success-circle svg {
+            width: 60px;
+            height: 60px;
+            stroke: #fff;
+            stroke-width: 5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+        }
+
+        .success-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 3rem;
+            color: var(--available-green);
+            letter-spacing: 2px;
+            line-height: 1;
+            margin-bottom: 0.6rem;
+        }
+
+        .success-detail {
+            font-size: 1.05rem;
+            color: var(--text-dark);
+            margin-bottom: 0.3rem;
+        }
+
+        .lane-assignment-note {
+            margin-top: 1.2rem;
+            padding: 0.8rem 1rem;
+            background: var(--section-bg);
+            border-radius: 4px;
+            border: 1px dashed var(--border-color);
+            font-style: italic;
+            font-size: 0.92rem;
+            color: var(--text-dark);
+            max-width: 340px;
+        }
+
+        .btn-new-booking {
+            display: inline-block;
+            margin-top: 2rem;
+            background-color: var(--primary-dark);
+            color: var(--bg-cream);
+            padding: 13px 28px;
+            border: none;
+            border-radius: 4px;
+            font-size: 1.35rem;
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            transition: background-color 0.25s, transform 0.2s;
+            box-shadow: 3px 3px 0px rgba(0,0,0,0.2);
+        }
+        .btn-new-booking:hover { background-color: #5a3a35; transform: translateY(-2px); }
+
+        /* ── Toast ── */
         #toast {
             position: fixed;
             top: -120px;
@@ -214,29 +450,7 @@
             white-space: nowrap;
         }
         #toast.show { top: 24px; }
-
-        .no-slots-msg {
-            text-align: center;
-            font-style: italic;
-            color: var(--text-dark);
-            padding: 2rem 0;
-            opacity: 0.7;
-            margin-top: auto;
-        }
-
-        .booking-success {
-            text-align: center;
-            padding: 2rem 1rem;
-        }
-
-        .success-title {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 2.2rem;
-            color: var(--available-green);
-            display: block;
-            margin-bottom: 0.5rem;
-            letter-spacing: 1.5px;
-        }
+        #toast.error { background-color: var(--accent-red); }
 
         footer {
             background-color: var(--primary-dark);
@@ -265,6 +479,9 @@
             nav a { display: block; padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); }
             nav a:last-child { border-bottom: none; }
             .form-row { flex-direction: column; gap: 0; }
+            .cal-cell { min-height: 62px; }
+            .cal-status { font-size: 0.62rem; }
+            .cal-legend { gap: 0.8rem; }
         }
     </style>
 </head>
@@ -274,7 +491,7 @@
         <div class="logo">
             <span>No. Chelmsford Lanes</span>
         </div>
-        <button class="mobile-menu-toggle" aria-label="Toggle navigation menu">☰</button>
+        <button class="mobile-menu-toggle" aria-label="Toggle navigation menu">&#9776;</button>
         <nav>
             <ul>
                 <li><a href="index.html#play">Play</a></li>
@@ -287,11 +504,22 @@
 
     <section class="page-header">
         <h1>Reserve Your Spot on the Wood</h1>
-        <p>We are rolling daily from <strong>9:00 AM to 6:00 PM</strong>. Reservations are booked in 1-hour slots. Select your lane, date, and time — or grab a future slot if the wood is currently occupied.</p>
+        <p>We are rolling daily from <strong>9:00 AM to 6:00 PM</strong>. Reservations are booked in 1-hour slots. Pick your date and time — your lane will be assigned when you arrive based on availability.</p>
     </section>
 
-    <main class="container">
-        <div class="lane-grid"></div>
+    <main>
+        <!-- Calendar View -->
+        <div id="calendar-view" class="calendar-container">
+            <div class="cal-card">
+                <div class="cal-header">
+                    <h2>Loading&hellip;</h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form View (hidden until a day is selected) -->
+        <div id="form-view" class="form-container" style="display:none;">
+        </div>
     </main>
 
     <div id="toast"></div>
@@ -302,9 +530,8 @@
 
     <script>
         // ── Mobile Menu ──────────────────────────────────────────────────
-        const menuToggle = document.querySelector('.mobile-menu-toggle');
-        const navMenu = document.querySelector('nav ul');
-        menuToggle.addEventListener('click', () => navMenu.classList.toggle('active'));
+        document.querySelector('.mobile-menu-toggle')
+            .addEventListener('click', () => document.querySelector('nav ul').classList.toggle('active'));
 
         // ── Constants ────────────────────────────────────────────────────
         const TIME_SLOTS = [
@@ -318,217 +545,333 @@
             { value: '1600', label: '4:00 PM' },
             { value: '1700', label: '5:00 PM' },
         ];
+        const TOTAL_LANES = 6;
         const TODAY = new Date().toISOString().split('T')[0];
+        const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+        const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
         // ── State ─────────────────────────────────────────────────────────
-        const rsvCache = {}; // { [date]: reservation[] }
+        let dayMap = {};   // { [date]: { [slotTime]: count } }
+        let idMap  = {};   // { [id]: { date, startTime } } — for socket removal
+        let rsvCache = {}; // { [date]: reservation[] } — for form slot dropdown
 
-        // ── Supabase Init ─────────────────────────────────────────────────
-        async function initSupabase() {
-            const res = await fetch('/api/config');
-            const { supabaseUrl, supabaseAnonKey } = await res.json();
-            window._sb = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+        // ── Day Status ────────────────────────────────────────────────────
+        function getDayStatus(dateStr) {
+            if (dateStr < TODAY) return { type: 'past' };
+            const slotCounts = dayMap[dateStr] || {};
+            const isToday = dateStr === TODAY;
+            const nowInt  = isToday ? new Date().getHours() * 100 : 0;
+            const eligible = TIME_SLOTS.filter(s => !isToday || parseInt(s.value) > nowInt);
+            if (eligible.length === 0) return { type: 'past' };
+            const available = eligible.filter(s => (slotCounts[s.value] || 0) < TOTAL_LANES);
+            if (available.length === 0) return { type: 'full' };
+            const anyBooked = eligible.some(s => (slotCounts[s.value] || 0) > 0);
+            if (!anyBooked) return { type: 'free', openings: available.length };
+            return { type: 'partial', openings: available.length };
         }
 
-        // ── Socket.IO ─────────────────────────────────────────────────────
-        function initSocket() {
-            const socket = io();
-            socket.on('reservation:new', (rsv) => {
-                const d = rsv.reservation_date;
-                if (!rsvCache[d]) rsvCache[d] = [];
-                rsvCache[d].push(rsv);
-                rerenderCard(rsv.lane_id);
+        // ── Calendar Render ───────────────────────────────────────────────
+        function renderCalendar() {
+            const now = new Date();
+            const year  = now.getFullYear();
+            const month = now.getMonth() + 1;
+            const firstDayOfWeek = new Date(year, month - 1, 1).getDay();
+            const daysInMonth    = new Date(year, month, 0).getDate();
+
+            let html = `
+                <div class="cal-card">
+                    <div class="cal-header">
+                        <h2>${MONTH_NAMES[month - 1]} ${year}</h2>
+                        <p class="cal-subtitle">Click an available day to reserve your lane</p>
+                    </div>
+                    <div class="cal-grid">
+                        ${DAY_NAMES.map(d => `<div class="cal-day-header">${d}</div>`).join('')}
+            `;
+
+            for (let i = 0; i < firstDayOfWeek; i++) {
+                html += `<div class="cal-cell cal-empty"></div>`;
+            }
+
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dateStr = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                const status  = getDayStatus(dateStr);
+                let cellClass = 'cal-cell';
+                let statusText = '';
+                let clickable  = false;
+
+                if (dateStr === TODAY) cellClass += ' cal-today';
+
+                if (status.type === 'past') {
+                    cellClass += ' cal-past';
+                } else if (status.type === 'free') {
+                    cellClass += ' cal-free';
+                    statusText = 'Free All Day';
+                    clickable  = true;
+                } else if (status.type === 'partial') {
+                    cellClass += ' cal-partial';
+                    statusText = `${status.openings} opening${status.openings !== 1 ? 's' : ''} left`;
+                    clickable  = true;
+                } else {
+                    cellClass += ' cal-full';
+                    statusText = 'Booked';
+                }
+
+                const clickAttr = clickable ? `onclick="selectDay('${dateStr}')"` : '';
+                html += `
+                    <div class="${cellClass}" ${clickAttr}>
+                        <span class="cal-day-num">${d}</span>
+                        ${statusText ? `<span class="cal-status">${statusText}</span>` : ''}
+                    </div>
+                `;
+            }
+
+            html += `
+                    </div>
+                    <div class="cal-legend">
+                        <span class="legend-item"><span class="legend-dot legend-green"></span>Free all day</span>
+                        <span class="legend-item"><span class="legend-dot legend-yellow"></span>Openings left</span>
+                        <span class="legend-item"><span class="legend-dot legend-red"></span>Fully booked</span>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('calendar-view').innerHTML = html;
+        }
+
+        // ── Day Selection ─────────────────────────────────────────────────
+        async function selectDay(dateStr) {
+            document.getElementById('calendar-view').style.display = 'none';
+            document.getElementById('form-view').style.display = 'block';
+            await fetchReservations(dateStr);
+            renderForm(dateStr);
+        }
+
+        function backToCalendar() {
+            document.getElementById('form-view').style.display = 'none';
+            document.getElementById('calendar-view').style.display = 'block';
+            renderCalendar();
+        }
+
+        // ── Data Fetching ─────────────────────────────────────────────────
+        async function fetchMonthAvailability() {
+            const now   = new Date();
+            const year  = now.getFullYear();
+            const month = now.getMonth() + 1;
+            const start = `${year}-${String(month).padStart(2,'0')}-01`;
+            const last  = new Date(year, month, 0).getDate();
+            const end   = `${year}-${String(month).padStart(2,'0')}-${last}`;
+            const res  = await fetch(`/api/availability?start=${start}&end=${end}`);
+            const data = await res.json();
+            dayMap = {};
+            idMap  = {};
+            data.forEach(r => {
+                idMap[r.id] = { date: r.reservation_date, startTime: r.start_time };
+                if (!dayMap[r.reservation_date]) dayMap[r.reservation_date] = {};
+                dayMap[r.reservation_date][r.start_time] = (dayMap[r.reservation_date][r.start_time] || 0) + 1;
             });
         }
 
-        // ── Data ──────────────────────────────────────────────────────────
         async function fetchReservations(date) {
             if (rsvCache[date]) return rsvCache[date];
-            const res = await fetch(`/api/reservations?date=${date}`);
+            const res  = await fetch(`/api/reservations?date=${date}`);
             const data = await res.json();
             rsvCache[date] = Array.isArray(data) ? data : [];
             return rsvCache[date];
         }
 
-        // ── Helpers ───────────────────────────────────────────────────────
-        function esc(s) {
-            return String(s)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;');
-        }
-
-        function getOccupant(laneId) {
-            const slot = String(new Date().getHours()).padStart(2, '0') + '00';
-            return (rsvCache[TODAY] || []).find(r =>
-                r.lane_id === laneId &&
-                r.start_time === slot &&
-                (r.status === 'pending' || r.status === 'seated')
-            ) || null;
-        }
-
-        function nextAvailableLabel(laneId) {
-            const taken = new Set(
-                (rsvCache[TODAY] || []).filter(r => r.lane_id === laneId).map(r => r.start_time)
-            );
-            const nowInt = new Date().getHours() * 100;
-            const next = TIME_SLOTS.find(s => parseInt(s.value) > nowInt && !taken.has(s.value));
-            return next ? next.label : 'Tomorrow';
-        }
-
-        function availableSlots(laneId, date) {
-            const taken = new Set(
-                (rsvCache[date] || []).filter(r => r.lane_id === laneId).map(r => r.start_time)
-            );
+        // ── Time Slot Helpers ─────────────────────────────────────────────
+        function availableSlots(date) {
+            const rsvs      = rsvCache[date] || [];
+            const slotCount = {};
+            rsvs.forEach(r => { slotCount[r.start_time] = (slotCount[r.start_time] || 0) + 1; });
             const isToday = date === TODAY;
-            const nowInt = new Date().getHours() * 100;
+            const nowInt  = new Date().getHours() * 100;
             return TIME_SLOTS.filter(s => {
                 if (isToday && parseInt(s.value) <= nowInt) return false;
-                return !taken.has(s.value);
+                return (slotCount[s.value] || 0) < TOTAL_LANES;
             });
         }
 
-        // ── Render ────────────────────────────────────────────────────────
-        function buildCard(laneId) {
-            const occupant = getOccupant(laneId);
-            const occupied = occupant !== null;
-            const slots = availableSlots(laneId, TODAY);
-
-            const bookedInfo = occupied ? `
-                <div class="booked-info">
-                    <p>Currently rolling:</p>
-                    <span class="name">${esc(occupant.party_name)}</span>
-                    <span class="opening-time">Next Available Today: ${nextAvailableLabel(laneId)}</span>
-                </div>` : '';
-
-            const slotOptions = slots.map(s => `<option value="${s.value}">${s.label}</option>`).join('');
-
-            const formContent = slots.length === 0
-                ? `<p class="no-slots-msg">No more available slots today.</p>`
-                : `<form data-lane="${laneId}">
-                    <div class="form-group">
-                        <label for="name${laneId}">Bowler / Party Name</label>
-                        <input type="text" id="name${laneId}" placeholder="e.g. The Pin Pals" required>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="adults${laneId}">Adults</label>
-                            <input type="number" id="adults${laneId}" min="1" max="6" value="1" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="children${laneId}">Children</label>
-                            <input type="number" id="children${laneId}" min="0" max="6" value="0">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="date${laneId}">Date</label>
-                        <input type="date" id="date${laneId}" value="${TODAY}" min="${TODAY}" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="time${laneId}">Start Time</label>
-                        <select id="time${laneId}">${slotOptions}</select>
-                    </div>
-                    <button type="submit" class="btn">${occupied ? 'Book for Later' : `Reserve Lane ${laneId}`}</button>
-                </form>`;
-
-            return `<div class="lane-card ${occupied ? 'booked' : 'available'}" id="lane-card-${laneId}">
-                <div class="card-header">
-                    <span class="lane-number">Lane ${laneId}</span>
-                    <span class="status-badge">${occupied ? 'Occupied' : 'Available Now'}</span>
-                </div>
-                <div class="card-body">
-                    ${bookedInfo}
-                    ${formContent}
-                </div>
-            </div>`;
-        }
-
-        function rerenderCard(laneId) {
-            const el = document.getElementById(`lane-card-${laneId}`);
-            if (!el) return;
-            const tmp = document.createElement('div');
-            tmp.innerHTML = buildCard(laneId);
-            const card = tmp.firstElementChild;
-            el.replaceWith(card);
-            bindCard(card, laneId);
-        }
-
-        function bindCard(card, laneId) {
-            const form = card.querySelector('form[data-lane]');
-            if (!form) return;
-            form.addEventListener('submit', handleSubmit);
-            const dateInput = card.querySelector(`#date${laneId}`);
-            if (dateInput) {
-                dateInput.addEventListener('change', async (e) => {
-                    await fetchReservations(e.target.value);
-                    refreshTimeDropdown(laneId, e.target.value);
-                });
-            }
-        }
-
-        function refreshTimeDropdown(laneId, date) {
-            const select = document.getElementById(`time${laneId}`);
+        function refreshTimeDropdown(date) {
+            const select = document.getElementById('start-time');
             if (!select) return;
-            const slots = availableSlots(laneId, date);
-            select.innerHTML = slots.length
+            const slots = availableSlots(date);
+            if (slots.length === 0) {
+                select.innerHTML = '<option disabled value="">No slots available</option>';
+                select.disabled  = true;
+            } else {
+                select.disabled  = false;
+                select.innerHTML = slots.map(s => `<option value="${s.value}">${s.label}</option>`).join('');
+            }
+            const btn = document.querySelector('#reservation-form button[type="submit"]');
+            if (btn) btn.disabled = select.disabled;
+        }
+
+        // ── Socket.IO ─────────────────────────────────────────────────────
+        function initSocket() {
+            const socket = io();
+
+            socket.on('reservation:new', (rsv) => {
+                const d = rsv.reservation_date;
+                // Update idMap and dayMap
+                idMap[rsv.id] = { date: d, startTime: rsv.start_time };
+                if (!dayMap[d]) dayMap[d] = {};
+                dayMap[d][rsv.start_time] = (dayMap[d][rsv.start_time] || 0) + 1;
+                // Update rsvCache if loaded
+                if (rsvCache[d]) rsvCache[d].push(rsv);
+                // Refresh UI
+                if (document.getElementById('calendar-view').style.display !== 'none') renderCalendar();
+                const dateEl = document.getElementById('date');
+                if (dateEl && dateEl.value === d) refreshTimeDropdown(d);
+            });
+
+            socket.on('reservation:removed', ({ id }) => {
+                const info = idMap[id];
+                if (info) {
+                    if (dayMap[info.date] && dayMap[info.date][info.startTime] > 0) {
+                        dayMap[info.date][info.startTime]--;
+                    }
+                    delete idMap[id];
+                }
+                Object.keys(rsvCache).forEach(d => {
+                    rsvCache[d] = (rsvCache[d] || []).filter(r => r.id !== id);
+                });
+                if (document.getElementById('calendar-view').style.display !== 'none') renderCalendar();
+                const dateEl = document.getElementById('date');
+                if (dateEl) refreshTimeDropdown(dateEl.value);
+            });
+        }
+
+        // ── Render Form ───────────────────────────────────────────────────
+        function renderForm(dateStr) {
+            const slots       = availableSlots(dateStr);
+            const slotOptions = slots.length
                 ? slots.map(s => `<option value="${s.value}">${s.label}</option>`).join('')
                 : '<option disabled value="">No slots available</option>';
+
+            document.getElementById('form-view').innerHTML = `
+                <button class="back-btn" onclick="backToCalendar()">&#8592; Back to Calendar</button>
+                <div class="reservation-card" id="form-card">
+                    <div class="card-header">
+                        <h2>Book Your Slot</h2>
+                        <p class="lane-note">&#10003; Lane assigned in person at time of arrival</p>
+                    </div>
+                    <div class="card-body" id="card-body">
+                        <form id="reservation-form">
+                            <div class="form-group">
+                                <label for="party-name">Bowler / Party Name</label>
+                                <input type="text" id="party-name" placeholder="e.g. The Pin Pals" required autocomplete="name">
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="adults">Adults</label>
+                                    <input type="number" id="adults" min="1" max="6" value="1" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="children">Children</label>
+                                    <input type="number" id="children" min="0" max="6" value="0">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Date</label>
+                                <input type="date" id="date" value="${dateStr}" readonly
+                                    style="background-color:var(--section-bg); cursor:default;">
+                            </div>
+                            <div class="form-group">
+                                <label for="start-time">Start Time</label>
+                                <select id="start-time" ${slots.length === 0 ? 'disabled' : ''}>
+                                    ${slotOptions}
+                                </select>
+                            </div>
+                            <button type="submit" class="btn" ${slots.length === 0 ? 'disabled' : ''}>
+                                Reserve My Spot
+                            </button>
+                        </form>
+                    </div>
+                </div>`;
+
+            document.getElementById('reservation-form').addEventListener('submit', handleSubmit);
         }
 
         // ── Form Submit ───────────────────────────────────────────────────
         async function handleSubmit(e) {
             e.preventDefault();
-            const form = e.target;
-            const laneId = parseInt(form.dataset.lane);
-            const btn = form.querySelector('button[type="submit"]');
+            const form     = e.target;
+            const btn      = form.querySelector('button[type="submit"]');
             const origText = btn.textContent;
 
-            const payload = {
-                lane_id: laneId,
-                party_name: form.querySelector(`#name${laneId}`).value.trim(),
-                adults: parseInt(form.querySelector(`#adults${laneId}`).value),
-                children: parseInt(form.querySelector(`#children${laneId}`).value) || 0,
-                reservation_date: form.querySelector(`#date${laneId}`).value,
-                start_time: form.querySelector(`#time${laneId}`).value,
-            };
+            const partyName = document.getElementById('party-name').value.trim();
+            const adults    = parseInt(document.getElementById('adults').value);
+            const children  = parseInt(document.getElementById('children').value) || 0;
+            const date      = document.getElementById('date').value;
+            const startTime = document.getElementById('start-time').value;
 
-            btn.disabled = true;
+            if (!partyName) { showError(form, 'Please enter your party name.'); return; }
+            if (!date)      { showError(form, 'Please select a date.'); return; }
+            if (!startTime) { showError(form, 'Please select a start time.'); return; }
+
+            btn.disabled    = true;
             btn.textContent = 'Booking...';
 
+            const payload = { party_name: partyName, adults, children, reservation_date: date, start_time: startTime };
+
             try {
-                const res = await fetch('/api/reservations', {
-                    method: 'POST',
+                const res  = await fetch('/api/reservations', {
+                    method:  'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload),
+                    body:    JSON.stringify(payload),
                 });
                 const data = await res.json();
 
-                if (!res.ok) {
-                    showError(form, data.error || 'Could not complete booking. Please try again.');
-                    btn.disabled = false;
+                if (res.status === 409) {
+                    // Slot just filled up — bust the cache, refresh the dropdown, alert via toast
+                    delete rsvCache[date];
+                    await fetchReservations(date);
+                    refreshTimeDropdown(date);
+                    showToast('That time just got taken — please pick a different slot.', 'error');
+                    btn.disabled    = false;
                     btn.textContent = origText;
                     return;
                 }
 
-                const slot = TIME_SLOTS.find(s => s.value === payload.start_time);
-                showToast(`Your booking is set! See you at ${slot ? slot.label : payload.start_time}`);
-                form.closest('.card-body').innerHTML = `
-                    <div class="booking-success">
-                        <span class="success-title">You're booked!</span>
-                        <p>See you at <strong>${slot ? slot.label : payload.start_time}</strong> on <strong>${payload.reservation_date}</strong>.</p>
+                if (!res.ok) {
+                    showError(form, data.error || 'Could not complete booking. Please try again.');
+                    btn.disabled    = false;
+                    btn.textContent = origText;
+                    return;
+                }
+
+                const slot      = TIME_SLOTS.find(s => s.value === startTime);
+                const timeLabel = slot ? slot.label : startTime;
+
+                document.getElementById('form-view').innerHTML = `
+                    <div class="reservation-card">
+                        <div class="card-body">
+                            <div class="booking-success">
+                                <div class="success-circle">
+                                    <svg viewBox="0 0 52 52">
+                                        <polyline points="10,28 21,39 42,16"/>
+                                    </svg>
+                                </div>
+                                <span class="success-title">You're in the books!</span>
+                                <p class="success-detail">See you at <strong>${timeLabel}</strong> on <strong>${date}</strong>.</p>
+                                <p class="lane-assignment-note">Your lane will be assigned when you arrive. See you on the wood!</p>
+                                <button class="btn-new-booking" onclick="backToCalendar()">Make Another Booking</button>
+                            </div>
+                        </div>
                     </div>`;
             } catch {
                 showError(form, 'Connection error. Please try again.');
-                btn.disabled = false;
+                btn.disabled    = false;
                 btn.textContent = origText;
             }
         }
 
         let toastTimer = null;
-        function showToast(msg) {
+        function showToast(msg, type = 'success') {
             const toast = document.getElementById('toast');
             toast.textContent = msg;
+            toast.classList.toggle('error', type === 'error');
             toast.classList.add('show');
             clearTimeout(toastTimer);
             toastTimer = setTimeout(() => toast.classList.remove('show'), 4000);
@@ -546,18 +889,9 @@
 
         // ── Boot ──────────────────────────────────────────────────────────
         async function init() {
-            await initSupabase();
             initSocket();
-            await fetchReservations(TODAY);
-
-            const grid = document.querySelector('.lane-grid');
-            for (let i = 1; i <= 6; i++) {
-                const tmp = document.createElement('div');
-                tmp.innerHTML = buildCard(i);
-                const card = tmp.firstElementChild;
-                grid.appendChild(card);
-                bindCard(card, i);
-            }
+            await fetchMonthAvailability();
+            renderCalendar();
         }
 
         init();
