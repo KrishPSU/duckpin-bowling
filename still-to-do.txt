@@ -1,4 +1,4 @@
-- admin side rendering from db
+- admin side rendering from db [DONE]
 - admin side logic
       On top of that Create the admin side logic for where if they deny a reservation it will get deleted from the db and if they accept it will ask them what lane
 - announcements / email notifications (reminders to customers who reserved)

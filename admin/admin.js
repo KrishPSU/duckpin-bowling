@@ -98,6 +98,7 @@ function renderLaneStatus() {
                 <span class="lane-box-num">Lane ${n}</span>
                 <span class="lane-box-status">Occupied</span>
                 <span class="lane-box-party">${esc(rsv.party_name)}</span>
+                <span class="lane-box-time">${slotLabel(rsv.start_time)}</span>
             </div>`;
         } else {
             html += `<div class="lane-box available">
@@ -108,6 +109,26 @@ function renderLaneStatus() {
         }
     }
     document.getElementById('lane-boxes').innerHTML = html;
+}
+
+function buildSlotLaneGrid(rsvs) {
+    const laneMap = {};
+    rsvs.filter(r => r.status === 'seated' && r.lane_id)
+        .forEach(r => { laneMap[parseInt(r.lane_id)] = r; });
+
+    const boxes = Array.from({ length: TOTAL_LANES }, (_, i) => i + 1).map(n => {
+        const rsv = laneMap[n];
+        return rsv
+            ? `<div class="slot-lane-box occupied" title="${esc(rsv.party_name)}">
+                   <span class="slot-lane-num">${n}</span>
+                   <span class="slot-lane-party">${esc(rsv.party_name)}</span>
+               </div>`
+            : `<div class="slot-lane-box available">
+                   <span class="slot-lane-num">${n}</span>
+               </div>`;
+    }).join('');
+
+    return `<div class="slot-lane-mini">${boxes}</div>`;
 }
 
 function renderReservations() {
@@ -136,6 +157,7 @@ function renderReservations() {
                 <span class="section-label">${slot.label}</span>
                 ${pendingCount > 0 ? `<span class="slot-badge">${pendingCount} pending</span>` : ''}
             </div>
+            ${buildSlotLaneGrid(rsvs)}
             <div class="reservations-list">
                 ${rsvs.map(r => buildCard(r)).join('')}
             </div>
@@ -162,7 +184,7 @@ function buildCard(rsv) {
                 &#10003;&nbsp; Seat This Party
             </button>
             <button class="btn-action btn-remove" onclick="removeReservation('${esc(rsv.id)}', '${esc(rsv.party_name)}', '${esc(rsv.start_time)}')">
-                &#10007;&nbsp; Remove
+                &#10007;&nbsp; No-Show
             </button>
         </div>`;
 
@@ -265,7 +287,7 @@ function cancelLanePicker(id, startTime) {
             &#10003;&nbsp; Seat This Party
         </button>
         <button class="btn-action btn-remove" onclick="removeReservation('${esc(id)}', '${name}', '${time}')">
-            &#10007;&nbsp; Remove
+            &#10007;&nbsp; No-Show
         </button>`;
 }
 
@@ -304,7 +326,7 @@ async function confirmSeat(id) {
 async function removeReservation(id, partyName, startTime) {
     const name = partyName || (allReservations.find(r => r.id === id) || {}).party_name || 'this party';
     const time = slotLabel(startTime);
-    if (!confirm(`Remove the reservation for "${name}" at ${time}?\n\nThe time slot will open for others online.`)) return;
+    if (!confirm(`Mark "${name}" at ${time} as a no-show?\n\nTheir slot will open for others, but the record will be kept.`)) return;
 
     const card = document.getElementById(`card-${id}`);
     if (card) {
