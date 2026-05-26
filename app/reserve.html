@@ -611,7 +611,7 @@
 
         function buildAnnouncementCard(ann) {
             const colorClass = ANN_COLORS[ann.color] || 'ann-grey';
-            return `<div class="announcement-card ${colorClass}">
+            return `<div class="announcement-card ${colorClass}" data-ann-id="${esc(ann.id)}">
                 <div class="ann-card-header">${esc(ann.header)}</div>
                 <div class="ann-card-body">${esc(ann.content)}</div>
             </div>`;
@@ -806,6 +806,22 @@
 
             socket.on('announcement:new', (ann) => {
                 prependAnnouncement(ann);
+            });
+
+            socket.on('announcement:hidden', ({ id }) => {
+                const section = document.getElementById('announcements-section');
+                const card = section ? section.querySelector(`[data-ann-id="${id}"]`) : null;
+                if (card) card.remove();
+            });
+
+            socket.on('announcement:updated', (ann) => {
+                const section = document.getElementById('announcements-section');
+                const card = section ? section.querySelector(`[data-ann-id="${ann.id}"]`) : null;
+                if (card) {
+                    const tmp = document.createElement('div');
+                    tmp.innerHTML = buildAnnouncementCard(ann);
+                    card.replaceWith(tmp.firstElementChild);
+                }
             });
 
             socket.on('reservation:removed', ({ id }) => {

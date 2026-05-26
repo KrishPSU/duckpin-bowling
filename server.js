@@ -155,11 +155,25 @@ app.post('/api/reservations', async (req, res) => {
 });
 
 // ── Announcements API ────────────────────────────────────────────
+// NOTE: The announcements table needs a `hidden` boolean column.
+// Run this in Supabase SQL editor if needed:
+//   ALTER TABLE announcements ADD COLUMN hidden BOOLEAN DEFAULT FALSE;
 
 app.get('/api/announcements', async (req, res) => {
   const { data, error } = await supabase
     .from('announcements')
     .select('*')
+    .eq('hidden', false)
+    .order('created_at', { ascending: false });
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
+});
+
+app.get('/api/admin/announcements', requireAdmin, async (req, res) => {
+  const { data, error } = await supabase
+    .from('announcements')
+    .select('*')
+    .eq('hidden', false)
     .order('created_at', { ascending: false });
   if (error) return res.status(500).json({ error: error.message });
   res.json(data);
@@ -176,12 +190,46 @@ app.post('/api/admin/announcements', requireAdmin, async (req, res) => {
   }
   const { data, error } = await supabase
     .from('announcements')
-    .insert({ header: header.trim(), content: content.trim(), color })
+    .insert({ header: header.trim(), content: content.trim(), color, hidden: false })
     .select()
     .single();
   if (error) return res.status(500).json({ error: error.message });
   io.emit('announcement:new', data);
   res.status(201).json(data);
+});
+
+app.patch('/api/admin/announcements/:id', requireAdmin, async (req, res) => {
+  const { id } = req.params;
+  const { header, content, color } = req.body;
+  if (!header || !content || !color) {
+    return res.status(400).json({ error: 'Header, content, and color are required.' });
+  }
+  const validColors = ['grey', 'yellow', 'red', 'green'];
+  if (!validColors.includes(color)) {
+    return res.status(400).json({ error: 'Invalid color.' });
+  }
+  const { data, error } = await supabase
+    .from('announcements')
+    .update({ header: header.trim(), content: content.trim(), color })
+    .eq('id', id)
+    .select()
+    .single();
+  if (error) return res.status(500).json({ error: error.message });
+  io.emit('announcement:updated', data);
+  res.json(data);
+});
+
+app.patch('/api/admin/announcements/:id/hide', requireAdmin, async (req, res) => {
+  const { id } = req.params;
+  const { data, error } = await supabase
+    .from('announcements')
+    .update({ hidden: true })
+    .eq('id', id)
+    .select()
+    .single();
+  if (error) return res.status(500).json({ error: error.message });
+  io.emit('announcement:hidden', { id });
+  res.json(data);
 });
 
 // ── Admin Reservations API ───────────────────────────────────────
@@ -266,6 +314,17 @@ app.delete('/api/admin/reservations/:id', requireAdmin, async (req, res) => {
   res.json({ success: true });
 });
 
+// ── Admin static assets (CSS/login JS — no sensitive content) ────
+app.get('/admin/admin.css', (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin', 'admin.css'));
+});
+app.get('/admin/login.css', (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin', 'login.css'));
+});
+app.get('/admin/login.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin', 'login.js'));
+});
+
 // ── Admin login ──────────────────────────────────────────────────
 app.get('/admin/login', (req, res) => {
   if (req.session && req.session.isAdmin) return res.redirect('/admin');
@@ -306,6 +365,14 @@ app.get('/admin', requireAdmin, (req, res) => {
 
 app.get('/admin/admin.js', requireAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, 'admin', 'admin.js'));
+});
+
+app.get('/admin/announcements', requireAdmin, (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin', 'announcements.html'));
+});
+
+app.get('/admin/announcements.js', requireAdmin, (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin', 'announcements.js'));
 });
 
 // ── Socket.IO ────────────────────────────────────────────────────

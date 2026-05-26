@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Announcements | No. Chelmsford Lanes</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <script src="/socket.io/socket.io.js"></script>
+    <link rel="stylesheet" href="/admin/admin.css">
+</head>
+<body>
+
+<header>
+    <div class="logo">No. Chelmsford Lanes</div>
+    <nav class="admin-nav">
+        <a href="/admin" class="btn-nav">Dashboard</a>
+        <a href="/admin/announcements" class="btn-nav active">Announcements</a>
+    </nav>
+    <div style="display:flex; align-items:center; gap:1rem;">
+        <span class="admin-label">Staff Admin</span>
+        <a href="/admin/logout" class="btn-logout">Log Out</a>
+    </div>
+</header>
+
+<div class="status-bar">
+    <div id="current-date">Loading&hellip;</div>
+    <div class="summary">
+        <span class="summary-chip">Time: <strong id="current-time">--:-- --</strong></span>
+    </div>
+</div>
+
+<section class="page-header">
+    <div class="page-header-left">
+        <h1>Announcements</h1>
+        <p>Manage announcements displayed to customers on the reservation page.</p>
+    </div>
+</section>
+
+<main>
+    <div class="ann-mgmt-section">
+        <div id="ann-list" class="ann-mgmt-list">
+            <p class="loading-msg">Loading announcements&hellip;</p>
+        </div>
+    </div>
+</main>
+
+<footer>
+    <p>&copy; 2026 No. Chelmsford Lanes &mdash; Staff Administration</p>
+</footer>
+
+<div id="admin-toast"></div>
+
+<!-- FAB: New Announcement -->
+<button class="fab-announce" onclick="openAnnouncementModal()" title="Post an Announcement" aria-label="Post an Announcement">+</button>
+
+<!-- Create Announcement Modal -->
+<div id="announcement-modal" class="modal-overlay" onclick="handleCreateOverlayClick(event)">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h2>Post an Announcement</h2>
+            <button class="modal-close" onclick="closeAnnouncementModal()" title="Close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p id="create-modal-error" class="modal-error" style="display:none;"></p>
+            <div class="modal-field">
+                <label class="modal-label" for="ann-header">Announcement Title</label>
+                <input type="text" id="ann-header" class="modal-input" placeholder="e.g. Closed This Weekend">
+            </div>
+            <div class="modal-field">
+                <label class="modal-label" for="ann-content">Message</label>
+                <textarea id="ann-content" class="modal-textarea" placeholder="Write your announcement here..."></textarea>
+            </div>
+            <div class="modal-field">
+                <label class="modal-label">Background Color</label>
+                <div class="color-swatches" id="create-swatches">
+                    <button class="color-swatch" data-color="grey" onclick="selectColor('create', 'grey')">
+                        <span class="swatch-preview swatch-grey"></span>
+                        <span class="swatch-label">Grey</span>
+                    </button>
+                    <button class="color-swatch" data-color="yellow" onclick="selectColor('create', 'yellow')">
+                        <span class="swatch-preview swatch-yellow"></span>
+                        <span class="swatch-label">Yellow</span>
+                    </button>
+                    <button class="color-swatch" data-color="red" onclick="selectColor('create', 'red')">
+                        <span class="swatch-preview swatch-red"></span>
+                        <span class="swatch-label">Red</span>
+                    </button>
+                    <button class="color-swatch" data-color="green" onclick="selectColor('create', 'green')">
+                        <span class="swatch-preview swatch-green"></span>
+                        <span class="swatch-label">Green</span>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-modal-cancel" onclick="closeAnnouncementModal()">Cancel</button>
+                <button class="btn-post-announce" id="post-announce-btn" onclick="submitAnnouncement()">Post Announcement</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Announcement Modal -->
+<div id="edit-modal" class="modal-overlay" onclick="handleEditOverlayClick(event)">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h2>Edit Announcement</h2>
+            <button class="modal-close" onclick="closeEditModal()" title="Close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p id="edit-modal-error" class="modal-error" style="display:none;"></p>
+            <div class="modal-field">
+                <label class="modal-label" for="edit-ann-header">Announcement Title</label>
+                <input type="text" id="edit-ann-header" class="modal-input">
+            </div>
+            <div class="modal-field">
+                <label class="modal-label" for="edit-ann-content">Message</label>
+                <textarea id="edit-ann-content" class="modal-textarea"></textarea>
+            </div>
+            <div class="modal-field">
+                <label class="modal-label">Background Color</label>
+                <div class="color-swatches" id="edit-swatches">
+                    <button class="color-swatch" data-color="grey" onclick="selectColor('edit', 'grey')">
+                        <span class="swatch-preview swatch-grey"></span>
+                        <span class="swatch-label">Grey</span>
+                    </button>
+                    <button class="color-swatch" data-color="yellow" onclick="selectColor('edit', 'yellow')">
+                        <span class="swatch-preview swatch-yellow"></span>
+                        <span class="swatch-label">Yellow</span>
+                    </button>
+                    <button class="color-swatch" data-color="red" onclick="selectColor('edit', 'red')">
+                        <span class="swatch-preview swatch-red"></span>
+                        <span class="swatch-label">Red</span>
+                    </button>
+                    <button class="color-swatch" data-color="green" onclick="selectColor('edit', 'green')">
+                        <span class="swatch-preview swatch-green"></span>
+                        <span class="swatch-label">Green</span>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-modal-cancel" onclick="closeEditModal()">Cancel</button>
+                <button class="btn-post-announce" id="save-edit-btn" onclick="submitEdit()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div id="delete-modal" class="modal-overlay" onclick="handleDeleteOverlayClick(event)">
+    <div class="modal-box" style="max-width:440px;">
+        <div class="modal-header">
+            <h2>Delete Announcement?</h2>
+            <button class="modal-close" onclick="closeDeleteModal()" title="Close">&times;</button>
+        </div>
+        <div class="modal-body" style="text-align:center;">
+            <p style="font-size:1.05rem; margin-bottom:1.8rem; line-height:1.6;">This announcement will be deleted. You cannot undo this action.</p>
+            <div class="modal-actions" style="justify-content:center;">
+                <button class="btn-modal-cancel" onclick="closeDeleteModal()">Cancel</button>
+                <button class="btn-confirm-delete" id="confirm-delete-btn" onclick="confirmDelete()">Yes, Delete It</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/admin/announcements.js"></script>
+
+</body>
+</html>
