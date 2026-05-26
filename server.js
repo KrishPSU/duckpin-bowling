@@ -318,6 +318,9 @@ app.delete('/api/admin/reservations/:id', requireAdmin, async (req, res) => {
 app.get('/admin/admin.css', (req, res) => {
   res.sendFile(path.join(__dirname, 'admin', 'admin.css'));
 });
+app.get('/admin/analytics.css', (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin', 'analytics.css'));
+});
 app.get('/admin/login.css', (req, res) => {
   res.sendFile(path.join(__dirname, 'admin', 'login.css'));
 });
@@ -373,6 +376,140 @@ app.get('/admin/announcements', requireAdmin, (req, res) => {
 
 app.get('/admin/announcements.js', requireAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, 'admin', 'announcements.js'));
+});
+
+app.get('/admin/analytics', requireAdmin, (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin', 'analytics.html'));
+});
+
+app.get('/admin/analytics.js', requireAdmin, (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin', 'analytics.js'));
+});
+
+// ── Analytics API ────────────────────────────────────────────────
+
+app.get('/api/admin/analytics', requireAdmin, async (req, res) => {
+  let { from, to } = req.query;
+
+  if (!from || !to) {
+    const today = new Date();
+    to = today.toISOString().split('T')[0];
+    const start = new Date(today);
+    start.setDate(start.getDate() - 29);
+    from = start.toISOString().split('T')[0];
+  }
+
+  const { data, error } = await supabase
+    .from('reservations')
+    .select('reservation_date, start_time, adults, children, status, created_at, seated_at')
+    .gte('reservation_date', from)
+    .lte('reservation_date', to)
+    .order('reservation_date', { ascending: true });
+
+  if (error) return res.status(500).json({ error: error.message });
+
+  const TIME_SLOTS = ['0900','1000','1100','1200','1300','1400','1500','1600','1700'];
+  const SLOT_LABELS = {
+    '0900':'9:00 AM','1000':'10:00 AM','1100':'11:00 AM','1200':'12:00 PM',
+    '1300':'1:00 PM','1400':'2:00 PM','1500':'3:00 PM','1600':'4:00 PM','1700':'5:00 PM',
+  };
+  const DOW_LABELS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+  // Build full date range
+  const dateRange = [];
+  const cur = new Date(from + 'T00:00:00');
+  const endDate = new Date(to + 'T00:00:00');
+  while (cur <= endDate) { dateRange.push(cur.toISOString().split('T')[0]); cur.setDate(cur.getDate() + 1); }
+
+  // Count how many times each day-of-week appears in the range
+  const dowOccurrences = new Array(7).fill(0);
+  for (const d of dateRange) dowOccurrences[new Date(d + 'T00:00:00').getDay()]++;
+
+  const confirmed = data.filter(r => r.status !== 'cancelled');
+  const cancelled = data.filter(r => r.status === 'cancelled');
+
+  const totalBowlers = confirmed.reduce((s, r) => s + (r.adults || 0) + (r.children || 0), 0);
+  const avgPartySize = confirmed.length ? totalBowlers / confirmed.length : 0;
+
+  const leadTimes = confirmed.map(r => {
+    const diff = new Date(r.reservation_date + 'T00:00:00') - new Date(r.created_at.split('T')[0] + 'T00:00:00');
+    return Math.max(0, Math.round(diff / 86400000));
+  });
+  const avgLeadTime = leadTimes.length ? leadTimes.reduce((a, b) => a + b, 0) / leadTimes.length : 0;
+
+  const seatingLags = data
+    .filter(r => r.status === 'seated' && r.seated_at)
+    .map(r => {
+      const h = Math.floor(parseInt(r.start_time) / 100);
+      const m = parseInt(r.start_time) % 100;
+      const scheduled = new Date(`${r.reservation_date}T${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:00`);
+      return (new Date(r.seated_at) - scheduled) / 60000;
+    })
+    .filter(lag => lag >= 0 && lag < 240);
+  const avgSeatingLag = seatingLags.length ? seatingLags.reduce((a, b) => a + b, 0) / seatingLags.length : 0;
+
+  // By day of week
+  const byDOW = new Array(7).fill(0);
+  for (const r of confirmed) byDOW[new Date(r.reservation_date + 'T00:00:00').getDay()]++;
+
+  // By time slot
+  const bySlot = {};
+  for (const s of TIME_SLOTS) bySlot[s] = 0;
+  for (const r of confirmed) { if (bySlot[r.start_time] !== undefined) bySlot[r.start_time]++; }
+
+  // Heatmap: dow × slot → utilization %
+  const heatCount = {};
+  for (let d = 0; d < 7; d++) { heatCount[d] = {}; for (const s of TIME_SLOTS) heatCount[d][s] = 0; }
+  for (const r of confirmed) {
+    const dow = new Date(r.reservation_date + 'T00:00:00').getDay();
+    if (heatCount[dow][r.start_time] !== undefined) heatCount[dow][r.start_time]++;
+  }
+  const heatmap = {};
+  for (let dow = 0; dow < 7; dow++) {
+    heatmap[dow] = {};
+    for (const s of TIME_SLOTS) {
+      const occ = dowOccurrences[dow];
+      heatmap[dow][s] = occ > 0 ? Math.round(heatCount[dow][s] / (occ * TOTAL_LANES) * 100) : 0;
+    }
+  }
+
+  // Trend by date
+  const byDate = {};
+  for (const d of dateRange) byDate[d] = 0;
+  for (const r of confirmed) { if (byDate[r.reservation_date] !== undefined) byDate[r.reservation_date]++; }
+
+  // Party size buckets
+  const sizeDist = { '1-2': 0, '3-4': 0, '5-6': 0, '7+': 0 };
+  for (const r of confirmed) {
+    const sz = (r.adults || 0) + (r.children || 0);
+    if (sz <= 2) sizeDist['1-2']++;
+    else if (sz <= 4) sizeDist['3-4']++;
+    else if (sz <= 6) sizeDist['5-6']++;
+    else sizeDist['7+']++;
+  }
+
+  const totalSlots = dateRange.length * TOTAL_LANES * TIME_SLOTS.length;
+  const avgUtilization = totalSlots > 0 ? (confirmed.length / totalSlots) * 100 : 0;
+
+  res.json({
+    from, to,
+    summary: {
+      totalReservations: data.length,
+      confirmedReservations: confirmed.length,
+      cancelledReservations: cancelled.length,
+      cancellationRate: data.length > 0 ? Math.round(cancelled.length / data.length * 1000) / 10 : 0,
+      totalBowlers,
+      avgPartySize: Math.round(avgPartySize * 10) / 10,
+      avgLeadTimeDays: Math.round(avgLeadTime * 10) / 10,
+      avgSeatingLagMinutes: Math.round(avgSeatingLag * 10) / 10,
+      avgUtilizationPct: Math.round(avgUtilization * 10) / 10,
+    },
+    byDayOfWeek: DOW_LABELS.map((day, i) => ({ day, count: byDOW[i] })),
+    byTimeSlot: TIME_SLOTS.map(s => ({ slot: SLOT_LABELS[s], count: bySlot[s] })),
+    heatmap,
+    byDate: dateRange.map(d => ({ date: d, count: byDate[d] })),
+    partySizeDistribution: Object.entries(sizeDist).map(([label, count]) => ({ label, count })),
+  });
 });
 
 // ── Socket.IO ────────────────────────────────────────────────────

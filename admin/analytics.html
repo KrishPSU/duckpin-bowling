@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics | No. Chelmsford Lanes</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="/admin/admin.css">
+    <link rel="stylesheet" href="/admin/analytics.css">
+</head>
+<body>
+
+<header>
+    <div class="logo">No. Chelmsford Lanes</div>
+    <nav class="admin-nav">
+        <a href="/admin" class="btn-nav">Dashboard</a>
+        <a href="/admin/announcements" class="btn-nav">Announcements</a>
+        <a href="/admin/analytics" class="btn-nav active">Analytics</a>
+    </nav>
+    <div style="display:flex; align-items:center; gap:1rem;">
+        <span class="admin-label">Staff Admin</span>
+        <a href="/admin/logout" class="btn-logout">Log Out</a>
+    </div>
+</header>
+
+<div class="status-bar">
+    <div id="current-date">Loading&hellip;</div>
+    <div class="summary">
+        <span class="summary-chip">Time: <strong id="current-time">--:-- --</strong></span>
+    </div>
+</div>
+
+<section class="page-header">
+    <div class="page-header-left">
+        <h1>Analytics</h1>
+        <p>Booking trends, lane utilization, and operational insights.</p>
+    </div>
+    <div class="range-controls">
+        <div class="range-presets">
+            <button class="btn-range active" data-days="30">30 Days</button>
+            <button class="btn-range" data-days="7">7 Days</button>
+            <button class="btn-range" data-days="90">90 Days</button>
+        </div>
+        <div class="custom-range">
+            <input type="date" id="from-date" aria-label="From date">
+            <span>to</span>
+            <input type="date" id="to-date" aria-label="To date">
+            <button class="btn-apply-range" onclick="applyCustomRange()">Apply</button>
+        </div>
+    </div>
+</section>
+
+<!-- Summary Cards -->
+<div class="analytics-summary" id="analytics-summary">
+    <div class="stat-card">
+        <div class="stat-value" id="stat-total">—</div>
+        <div class="stat-label">Total Reservations</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" id="stat-utilization">—</div>
+        <div class="stat-label">Lane Utilization</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" id="stat-party-size">—</div>
+        <div class="stat-label">Avg Party Size</div>
+    </div>
+    <div class="stat-card stat-card-warn" id="stat-cancel-card">
+        <div class="stat-value" id="stat-cancel">—</div>
+        <div class="stat-label">Cancellation Rate</div>
+    </div>
+</div>
+
+<!-- Row 1: Day of Week + Time Slot -->
+<div class="charts-row">
+    <div class="chart-box">
+        <h2 class="chart-title">Reservations by Day of Week</h2>
+        <div class="chart-wrap">
+            <canvas id="chart-dow"></canvas>
+        </div>
+    </div>
+    <div class="chart-box">
+        <h2 class="chart-title">Reservations by Time Slot</h2>
+        <div class="chart-wrap">
+            <canvas id="chart-slot"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Heatmap -->
+<div class="heatmap-section">
+    <div class="heatmap-header">
+        <h2 class="chart-title">Lane Utilization Heatmap</h2>
+        <p class="heatmap-sub">Average % of 6 lanes filled per day &amp; time slot</p>
+    </div>
+    <div class="heatmap-legend">
+        <span>0%</span>
+        <div class="legend-gradient"></div>
+        <span>100%</span>
+    </div>
+    <div class="heatmap-wrap">
+        <div class="heatmap-row-labels" id="heatmap-row-labels"></div>
+        <div class="heatmap-grid-wrap">
+            <div class="heatmap-col-labels" id="heatmap-col-labels"></div>
+            <div class="heatmap-grid" id="heatmap-grid"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Row 2: Trend + Party Size -->
+<div class="charts-row">
+    <div class="chart-box chart-box-wide">
+        <h2 class="chart-title">Booking Volume Over Time</h2>
+        <div class="chart-wrap">
+            <canvas id="chart-trend"></canvas>
+        </div>
+    </div>
+    <div class="chart-box">
+        <h2 class="chart-title">Party Size Distribution</h2>
+        <div class="chart-wrap">
+            <canvas id="chart-size"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Detail Stats Row -->
+<div class="detail-stats-row">
+    <div class="detail-stat">
+        <div class="detail-value" id="stat-bowlers">—</div>
+        <div class="detail-label">Total Bowlers</div>
+    </div>
+    <div class="detail-stat">
+        <div class="detail-value" id="stat-confirmed">—</div>
+        <div class="detail-label">Confirmed</div>
+    </div>
+    <div class="detail-stat">
+        <div class="detail-value" id="stat-cancelled">—</div>
+        <div class="detail-label">Cancelled</div>
+    </div>
+    <div class="detail-stat">
+        <div class="detail-value" id="stat-lead-time">—</div>
+        <div class="detail-label">Avg Booking Lead</div>
+        <div class="detail-sub">days in advance</div>
+    </div>
+    <div class="detail-stat">
+        <div class="detail-value" id="stat-lag">—</div>
+        <div class="detail-label">Avg Seating Lag</div>
+        <div class="detail-sub">min after start time</div>
+    </div>
+</div>
+
+<footer>
+    <p>&copy; 2026 No. Chelmsford Lanes &mdash; Staff Administration</p>
+</footer>
+
+<script src="/admin/analytics.js"></script>
+</body>
+</html>
