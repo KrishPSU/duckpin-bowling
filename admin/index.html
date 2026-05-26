@@ -214,42 +214,6 @@
             font-weight: bold;
         }
 
-        /* ── Per-slot lane grid ── */
-        .slot-lane-mini {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 4px;
-            margin: 0.7rem 0 1rem;
-        }
-
-        .slot-lane-box {
-            border-radius: 3px;
-            padding: 0.35rem 0.2rem;
-            text-align: center;
-            border: 1px solid var(--border-color);
-        }
-
-        .slot-lane-box.available { background: #EDF4ED; border-color: var(--available-green); }
-        .slot-lane-box.occupied  { background: #FFF3E0; border-color: var(--warning-orange); }
-
-        .slot-lane-num {
-            display: block;
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 1rem;
-            letter-spacing: 1px;
-            color: var(--primary-dark);
-            line-height: 1.1;
-        }
-
-        .slot-lane-party {
-            display: block;
-            font-size: 0.6rem;
-            color: var(--text-dark);
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            margin-top: 2px;
-        }
 
         /* ── Main Content ── */
         .container { max-width: 900px; margin: 0 auto; padding: 36px 20px 60px; }

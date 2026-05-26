@@ -111,25 +111,6 @@ function renderLaneStatus() {
     document.getElementById('lane-boxes').innerHTML = html;
 }
 
-function buildSlotLaneGrid(rsvs) {
-    const laneMap = {};
-    rsvs.filter(r => r.status === 'seated' && r.lane_id)
-        .forEach(r => { laneMap[parseInt(r.lane_id)] = r; });
-
-    const boxes = Array.from({ length: TOTAL_LANES }, (_, i) => i + 1).map(n => {
-        const rsv = laneMap[n];
-        return rsv
-            ? `<div class="slot-lane-box occupied" title="${esc(rsv.party_name)}">
-                   <span class="slot-lane-num">${n}</span>
-                   <span class="slot-lane-party">${esc(rsv.party_name)}</span>
-               </div>`
-            : `<div class="slot-lane-box available">
-                   <span class="slot-lane-num">${n}</span>
-               </div>`;
-    }).join('');
-
-    return `<div class="slot-lane-mini">${boxes}</div>`;
-}
 
 function renderReservations() {
     if (allReservations.length === 0) {
@@ -157,7 +138,6 @@ function renderReservations() {
                 <span class="section-label">${slot.label}</span>
                 ${pendingCount > 0 ? `<span class="slot-badge">${pendingCount} pending</span>` : ''}
             </div>
-            ${buildSlotLaneGrid(rsvs)}
             <div class="reservations-list">
                 ${rsvs.map(r => buildCard(r)).join('')}
             </div>
