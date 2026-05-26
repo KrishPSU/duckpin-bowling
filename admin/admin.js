@@ -374,6 +374,102 @@ function initSocket() {
     });
 }
 
+// ── Announcement Modal ────────────────────────────────────────────
+let selectedAnnouncementColor = null;
+
+function openAnnouncementModal() {
+    document.getElementById('ann-header').value = '';
+    document.getElementById('ann-content').value = '';
+    selectedAnnouncementColor = null;
+    document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+    const errorEl = document.getElementById('modal-error');
+    errorEl.style.display = 'none';
+    errorEl.textContent = '';
+    const btn = document.getElementById('post-announce-btn');
+    btn.disabled = false;
+    btn.textContent = 'Post Announcement';
+    document.getElementById('announcement-modal').classList.add('open');
+    document.getElementById('ann-header').focus();
+}
+
+function closeAnnouncementModal() {
+    document.getElementById('announcement-modal').classList.remove('open');
+}
+
+function handleModalOverlayClick(e) {
+    if (e.target === document.getElementById('announcement-modal')) closeAnnouncementModal();
+}
+
+function selectAnnouncementColor(color) {
+    selectedAnnouncementColor = color;
+    document.querySelectorAll('.color-swatch').forEach(s => {
+        s.classList.toggle('selected', s.dataset.color === color);
+    });
+}
+
+async function submitAnnouncement() {
+    const header  = document.getElementById('ann-header').value.trim();
+    const content = document.getElementById('ann-content').value.trim();
+    const errorEl = document.getElementById('modal-error');
+    errorEl.style.display = 'none';
+
+    if (!header) {
+        errorEl.textContent = 'Please enter a title for your announcement.';
+        errorEl.style.display = 'block';
+        return;
+    }
+    if (!content) {
+        errorEl.textContent = 'Please enter a message.';
+        errorEl.style.display = 'block';
+        return;
+    }
+    if (!selectedAnnouncementColor) {
+        errorEl.textContent = 'Please choose a background color.';
+        errorEl.style.display = 'block';
+        return;
+    }
+
+    const btn = document.getElementById('post-announce-btn');
+    btn.disabled = true;
+    btn.textContent = 'Posting...';
+
+    try {
+        const res = await fetch('/api/admin/announcements', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ header, content, color: selectedAnnouncementColor }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+            errorEl.textContent = data.error || 'Could not post announcement. Please try again.';
+            errorEl.style.display = 'block';
+            btn.disabled = false;
+            btn.textContent = 'Post Announcement';
+            return;
+        }
+        closeAnnouncementModal();
+        showAdminToast('Announcement posted!');
+    } catch {
+        errorEl.textContent = 'Connection error. Please try again.';
+        errorEl.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Post Announcement';
+    }
+}
+
+let adminToastTimer = null;
+function showAdminToast(msg) {
+    const el = document.getElementById('admin-toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(adminToastTimer);
+    adminToastTimer = setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeAnnouncementModal();
+});
+
 // ── Boot ──────────────────────────────────────────────────────────
 function init() {
     currentDate = TODAY;

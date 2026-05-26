@@ -154,6 +154,36 @@ app.post('/api/reservations', async (req, res) => {
   res.status(201).json(data);
 });
 
+// ── Announcements API ────────────────────────────────────────────
+
+app.get('/api/announcements', async (req, res) => {
+  const { data, error } = await supabase
+    .from('announcements')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
+});
+
+app.post('/api/admin/announcements', requireAdmin, async (req, res) => {
+  const { header, content, color } = req.body;
+  if (!header || !content || !color) {
+    return res.status(400).json({ error: 'Header, content, and color are required.' });
+  }
+  const validColors = ['grey', 'yellow', 'red', 'green'];
+  if (!validColors.includes(color)) {
+    return res.status(400).json({ error: 'Invalid color.' });
+  }
+  const { data, error } = await supabase
+    .from('announcements')
+    .insert({ header: header.trim(), content: content.trim(), color })
+    .select()
+    .single();
+  if (error) return res.status(500).json({ error: error.message });
+  io.emit('announcement:new', data);
+  res.status(201).json(data);
+});
+
 // ── Admin Reservations API ───────────────────────────────────────
 
 // Returns all pending/seated reservations for a date, ordered by time then creation
